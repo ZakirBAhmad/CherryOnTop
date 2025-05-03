@@ -1,0 +1,40 @@
+test_by_planting_id (test_table.TestCherryTable.test_by_planting_id) ... ok
+test_filter (test_table.TestCherryTable.test_filter) ... ok
+test_group_by (test_table.TestCherryTable.test_group_by) ... ERROR
+
+======================================================================
+ERROR: test_group_by (test_table.TestCherryTable.test_group_by)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/zakir/Documents/Projects/CherryOnTop/tests/test_table.py", line 50, in test_group_by
+    grouped = self.table.group_by(ranch=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zakir/Documents/Projects/CherryOnTop/src/table.py", line 125, in group_by
+    grouped_pred[i] = pred[group].sum(axis=0)
+                      ~~~~^^^^^^^
+IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.003s
+
+FAILED (errors=1)
+
+
+=== Test Summary ===
+Tests Run: 3
+Failures: 0
+Errors: 1
+Skipped: 0
+
+=== Errors ===
+
+test_group_by (test_table.TestCherryTable.test_group_by)
+Traceback (most recent call last):
+  File "/Users/zakir/Documents/Projects/CherryOnTop/tests/test_table.py", line 50, in test_group_by
+    grouped = self.table.group_by(ranch=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zakir/Documents/Projects/CherryOnTop/src/table.py", line 125, in group_by
+    grouped_pred[i] = pred[group].sum(axis=0)
+                      ~~~~^^^^^^^
+IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices
+
