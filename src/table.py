@@ -9,8 +9,11 @@ class CherryTable(object):
     desc: A class to handle and manipulate tabular data for cherry predictions and actuals
     params:
         meta: DataFrame of shape (N,F) containing feature metadata
+            meta data contains PlantingID as the index, Ranch, Class, Type, Variety, Year, TransplantWeek
         predictions: Dictionary of numpy arrays of shape (N,num_weeks) containing predictions
+            the weeks are weeks after transplant
         actuals: Numpy array of shape (N,num_weeks) containing actual values
+            the weeks are weeks after transplant
         num_weeks: Integer specifying number of weeks to track (default 20)
     returns: None
     """
@@ -29,7 +32,7 @@ class CherryTable(object):
             CherryTable: Filtered table containing only specified planting IDs, or None if invalid IDs
         """
         idx = self.meta.index.get_indexer(planting_id_list)
-        valid = idx != -1
+        valid = (idx != -1)
 
         valid_idx = idx[valid]
 
