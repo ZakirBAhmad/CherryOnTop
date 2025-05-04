@@ -45,7 +45,7 @@ class TestCherryTable(unittest.TestCase):
 
     def test_filter(self):
         # Test filtering by ranch
-        filtered = self.table.filter(ranches=['R1'])
+        filtered = self.table.filter(ranch_list=['R1'])
         self.assertIsNotNone(filtered)
         self.assertEqual(len(filtered.meta), 2)
         self.assertTrue(all(filtered.meta['Ranch'] == 'R1'))
@@ -53,7 +53,7 @@ class TestCherryTable(unittest.TestCase):
         self.assertEqual(len(filtered.actuals), 2)
         
         # Test filtering by multiple criteria
-        filtered = self.table.filter(ranches=['R1'], classes=['C1'])
+        filtered = self.table.filter(ranch_list=['R1'], class_list=['C1'])
         self.assertIsNotNone(filtered)
         self.assertEqual(len(filtered.meta), 1)
         self.assertTrue(all(filtered.meta['Ranch'] == 'R1'))
@@ -62,37 +62,32 @@ class TestCherryTable(unittest.TestCase):
         self.assertEqual(len(filtered.actuals), 1)
         
         # Test filtering with no matches
-        filtered = self.table.filter(ranches=['R3'])
+        filtered = self.table.filter(ranch_list=['R3'])
         self.assertIsNone(filtered)
 
-    def test_group_by(self):
-        # Test grouping by ranch
-        grouped = self.table.group_by(ranch=True)
-        self.assertIsNotNone(grouped)
-        self.assertEqual(len(grouped.meta), 2)  # Should have 2 groups (R1 and R2)
-        self.assertEqual(len(grouped.predictions['model1']), 2)
-        self.assertEqual(len(grouped.actuals), 2)
+    def test_summary(self):
+        # Test summary with no grouping
+        summary = self.table.summary()
+        self.assertIsNotNone(summary)
+        self.assertTrue(isinstance(summary, pd.Series))
         
-        # Test grouping by class
-        grouped = self.table.group_by(class_=True)
-        self.assertIsNotNone(grouped)
-        self.assertEqual(len(grouped.meta), 2)  # Should have 2 groups (C1 and C2)
-        self.assertEqual(len(grouped.predictions['model1']), 2)
-        self.assertEqual(len(grouped.actuals), 2)
+        # Test summary with ranch grouping
+        summary = self.table.summary(ranches=True)
+        self.assertIsNotNone(summary)
+        self.assertTrue(isinstance(summary, pd.DataFrame))
+        self.assertEqual(len(summary), 2)  # Should have 2 groups (R1 and R2)
         
-        # Test grouping by multiple columns
-        grouped = self.table.group_by(ranch=True, class_=True)
-        self.assertIsNotNone(grouped)
-        self.assertEqual(len(grouped.meta), 4)  # Should have 4 groups (R1C1, R1C2, R2C1, R2C2)
-        self.assertEqual(len(grouped.predictions['model1']), 4)
-        self.assertEqual(len(grouped.actuals), 4)
+        # Test summary with class grouping
+        summary = self.table.summary(classes=True)
+        self.assertIsNotNone(summary)
+        self.assertTrue(isinstance(summary, pd.DataFrame))
+        self.assertEqual(len(summary), 2)  # Should have 2 groups (C1 and C2)
         
-        # Test summing entire dataset
-        grouped = self.table.group_by(ranch=False, class_=False, type_=False, variety=False)
-        self.assertIsNotNone(grouped)
-        self.assertEqual(len(grouped.meta), 1)  # Should have 1 row with all data summed
-        self.assertTrue(np.array_equal(grouped.predictions['model1'], np.array([[16, 20]])))
-        self.assertTrue(np.array_equal(grouped.actuals, np.array([[16, 20]])))
+        # Test summary with multiple grouping
+        summary = self.table.summary(ranches=True, classes=True)
+        self.assertIsNotNone(summary)
+        self.assertTrue(isinstance(summary, pd.DataFrame))
+        self.assertEqual(len(summary), 4)  # Should have 4 groups (R1C1, R1C2, R2C1, R2C2)
 
 if __name__ == '__main__':
     unittest.main() 

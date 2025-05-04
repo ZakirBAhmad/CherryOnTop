@@ -1,0 +1,22 @@
+name: cherry
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pandas
+  - numpy
+  - streamlit
+  - matplotlib
+  - seaborn
+  - pytorch
+  - jupyter
+  - ipykernel
+  - black
+  - pylint
+  - pip:
+    - src
+    - python-lsp-server
+    - pylsp-mypy
+    - python-lsp-black 

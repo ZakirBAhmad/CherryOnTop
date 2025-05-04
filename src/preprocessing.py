@@ -18,7 +18,7 @@ def load_tomato(planting_meta_path, weekly_summary_path):
     """
     planting_meta = pd.read_json(planting_meta_path,orient='split')
     planting_meta['TransplantDate'] = pd.to_datetime(planting_meta['TransplantDate'])
-    planting_meta['ClimateSeries'] = planting_meta['ClimateSeries'].apply(lambda x: np.array(x))
+    planting_meta['ClimateSeries'] = planting_meta['ClimateSeries'].apply(lambda x: pd.Series([np.array(x)]))
     weekly_summary = pd.read_csv(weekly_summary_path)
 
     weekly_summary = weekly_summary.set_index('PlantingID')

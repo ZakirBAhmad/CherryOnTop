@@ -119,7 +119,7 @@ class CherryTable(object):
             self.meta,
             season_preds, 
             season_actuals,
-            None
+            self.num_weeks
         )
         
     def summary(self,ranches=False, classes=False, types=False, varieties=False,include_actuals=True):
