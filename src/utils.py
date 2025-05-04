@@ -54,4 +54,4 @@ def predict_harvest(model, test_dataset):
                 features, ranch_id, class_id, type_id, variety_id, climate_data, Y_kilos = batch
                 outputs = model(features, ranch_id, class_id, type_id, variety_id, climate_data)
                 test_predictions.append(outputs)
-    return test_predictions
+    return torch.cat(test_predictions, dim=0).detach().numpy()

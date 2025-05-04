@@ -9,19 +9,22 @@ class CherryTable(object):
     desc: A class to handle and manipulate tabular data for cherry predictions and actuals
     params:
         meta: DataFrame of shape (N,F) containing feature metadata
-            meta data contains PlantingID as the index, Ranch, Class, Type, Variety, Year, TransplantWeek
+            meta data contains PlantingID as the index, Ranch, Class, Type, Variety, Year, WeekTransplanted, Ha
         predictions: Dictionary of numpy arrays of shape (N,num_weeks) containing predictions
             the weeks are weeks after transplant
         actuals: Numpy array of shape (N,num_weeks) containing actual values
             the weeks are weeks after transplant
-        num_weeks: Integer specifying number of weeks to track (default 20)
+        num_weeks: Integer specifying number of weeks to track (default 20). If None, the table is seasonal
     returns: None
     """
-    def __init__(self, meta, predictions, actuals,num_weeks=20):
+    def __init__(self, meta, predictions, actuals = None,num_weeks=20):
         self.meta = meta #(N,F), number of features, dataframe
         self.num_weeks = num_weeks #int
         self.predictions = predictions #(N,num_weeks), dict of numpy arrays
-        self.actuals = actuals #(N,num_weeks), numpy array
+        if actuals is not None:
+            self.actuals = actuals #(N,num_weeks), numpy array
+        else:
+            self.actuals = np.zeros((len(self.meta), self.num_weeks))
         
     def by_planting_id(self, planting_id_list):
         """
@@ -79,60 +82,36 @@ class CherryTable(object):
         labels = self.meta.index[mask]
         return self.by_planting_id(labels)
     
-    def group_by(self, ranch=False, class_=False, type_=False, variety=False):
+    def season_table(self):
         """
-        desc: Groups and aggregates the table data by specified categories. If all parameters are False,
-              returns a new table with all data summed into a single row.
-        params:
-            ranch: Boolean indicating whether to group by ranch
-            class_: Boolean indicating whether to group by class
-            type_: Boolean indicating whether to group by type
-            variety: Boolean indicating whether to group by variety
-        returns:
-            CherryTable: New table with data grouped and summed by specified categories
-        """
-        # Determine grouping columns based on flags
-        group_cols = []
-        if ranch:
-            group_cols.append('Ranch')
-        if class_:
-            group_cols.append('Class') 
-        if type_:
-            group_cols.append('Type')
-        if variety:
-            group_cols.append('Variety')
-            
-        if not group_cols:
-            # If no grouping columns, sum the entire dataset
-            summed_meta = pd.DataFrame(self.meta.sum(numeric_only=True)).T
-            summed_preds = {key: pred.sum(axis=0, keepdims=True) for key, pred in self.predictions.items()}
-            summed_actuals = self.actuals.sum(axis=0, keepdims=True)
-            return CherryTable(
-                summed_meta,
-                summed_preds,
-                summed_actuals,
-                self.num_weeks
-            )
-            
-        # Group meta data
-        grouped_meta = self.meta.groupby(group_cols).sum(numeric_only=True)
+        Converts predictions and actuals from weeks-after-transplant to absolute weeks of the year.
+        Shifts each row's values by its WeekTransplanted value, padding with zeros at the start.
         
-        # Group predictions
-        grouped_preds = {}
+        returns:
+            CherryTable: New table with predictions and actuals aligned to calendar weeks
+        """
+        # Calculate max week needed (max transplant week + 20 prediction weeks)
+        max_week = self.meta['WeekTransplanted'].max() + self.num_weeks
+        
+        # Initialize arrays for the full year
+        season_preds = {}
         for key, pred in self.predictions.items():
-            grouped_pred = np.zeros((len(grouped_meta), self.num_weeks))
-            for i, (idx, group) in enumerate(self.meta.groupby(group_cols).groups.items()):
-                grouped_pred[i] = pred[group].sum(axis=0)
-            grouped_preds[key] = grouped_pred
+            # Create indices for each row's target positions
+            row_indices = np.arange(len(self.meta))[:, None]
+            col_indices = np.arange(self.num_weeks)[None, :] + self.meta['WeekTransplanted'].values[:, None]
             
-        # Group actuals
-        grouped_actuals = np.zeros((len(grouped_meta), self.num_weeks))
-        for i, (idx, group) in enumerate(self.meta.groupby(group_cols).groups.items()):
-            grouped_actuals[i] = self.actuals[group].sum(axis=0)
+            # Initialize array and assign values using advanced indexing
+            season_pred = np.zeros((len(self.meta), max_week))
+            season_pred[row_indices, col_indices] = pred
+            season_preds[key] = season_pred
             
+        # Same approach for actuals
+        season_actuals = np.zeros((len(self.meta), max_week))
+        season_actuals[row_indices, col_indices] = self.actuals
         return CherryTable(
-            grouped_meta,
-            grouped_preds,
-            grouped_actuals,
-            self.num_weeks
+            self.meta,
+            season_preds, 
+            season_actuals,
+            None
         )
+        

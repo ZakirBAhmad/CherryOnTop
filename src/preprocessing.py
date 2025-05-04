@@ -4,8 +4,9 @@ import numpy as np
 from src.dataset import HarvestDataset
 import torch
 from datetime import date
+
 #funcs
-def load_tomato():
+def load_tomato(planting_meta_path, weekly_summary_path):
     """
     desc: Loads data from the tomato_data folder
 
@@ -15,14 +16,14 @@ def load_tomato():
         planting_meta (df): contains meta information for each planting, including climate info, hectares
         weekly_summary (df):
     """
-    planting_meta = pd.read_json('../tomato_data/planting_meta.json',orient='split')
+    planting_meta = pd.read_json(planting_meta_path,orient='split')
     planting_meta['TransplantDate'] = pd.to_datetime(planting_meta['TransplantDate'])
     planting_meta['ClimateSeries'] = planting_meta['ClimateSeries'].apply(lambda x: np.array(x))
-    weekly_summary = pd.read_csv('../tomato_data/weekly_summary.csv')
+    weekly_summary = pd.read_csv(weekly_summary_path)
 
     weekly_summary = weekly_summary.set_index('PlantingID')
-
-    return planting_meta, weekly_summary
+    mapping_dict = construct_mapping_dict(planting_meta)
+    return planting_meta, weekly_summary, mapping_dict
 
 def reverse_sin_cos_week(sin, cos,year):
     """
@@ -37,7 +38,7 @@ def reverse_sin_cos_week(sin, cos,year):
     week = (np.degrees(np.arctan2(sin, cos)) * weeks_in_year/360 + weeks_in_year/2) % weeks_in_year
     return week
 
-def separate_year(year=2024):
+def separate_year(planting_meta_path, weekly_summary_path, year=2024):
     """
     desc: Separate a year from the dataset, for comparison
 
@@ -45,8 +46,7 @@ def separate_year(year=2024):
 
     returns: planting_meta_train df (excluding year), planting_meta_test df (just data from year)
     """
-    planting_meta, weekly_summary = load_tomato()
-    mapping_dict = construct_mapping_dict(planting_meta)
+    planting_meta, weekly_summary, mapping_dict = load_tomato(planting_meta_path, weekly_summary_path)
     production_plan = planting_meta[planting_meta['Year'] == year]
     training_data = planting_meta.drop(production_plan.index)
     
@@ -133,7 +133,7 @@ def decode(dataset, mapping_dict):
 
     # Create DataFrame
     df = pd.DataFrame({
-        'Hectares': features[:, 0],
+        'Ha': features[:, 0],
         'WeekTransplanted_sin': features[:, 1],
         'WeekTransplanted_cos': features[:, 2],
         'Year': features[:, 3].astype(int),
@@ -142,5 +142,12 @@ def decode(dataset, mapping_dict):
         'Type': [reverse_mappings['Type'][id] for id in type_ids],
         'Variety': [reverse_mappings['Variety'][id] for id in variety_ids]
     })
+    df['WeekTransplanted'] = df.apply(
+        lambda row: reverse_sin_cos_week(
+            row['WeekTransplanted_sin'], 
+            row['WeekTransplanted_cos'], 
+            row['Year']), 
+            axis=1
+        ).astype(int)
 
     return df
