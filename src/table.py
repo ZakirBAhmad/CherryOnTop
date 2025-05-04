@@ -115,3 +115,47 @@ class CherryTable(object):
             None
         )
         
+    def summary(self,ranches=None, classes=None, types=None, varieties=None):
+        """
+        desc: Creates a summary DataFrame containing total predictions and actuals for each planting,
+              along with per-hectare yield calculations. Can be grouped by ranch, class, type and variety.
+        params:
+            ranches: List of ranch names to filter by
+            classes: List of class names to filter by  
+            types: List of type names to filter by
+            varieties: List of variety names to filter by
+        returns:
+            pandas.DataFrame: DataFrame containing the metadata plus total predictions and actuals,
+                            with both raw totals and per-hectare yields. If grouping parameters are provided,
+                            returns grouped and summed data.
+        """
+        group_cols = []
+        if ranches is not None:
+            group_cols.append('Ranch')
+        if classes is not None:
+            group_cols.append('Class') 
+        if types is not None:
+            group_cols.append('Type')
+        if varieties is not None:
+            group_cols.append('Variety')
+
+        df = self.meta.copy()[group_cols + ['Ha']]
+
+        for key, pred in self.predictions.items():
+            df[key] = pred.sum(axis=1)
+        df['actuals'] = self.actuals.sum(axis=1)
+
+        if group_cols:
+            df = df.groupby(group_cols).sum(numeric_only=True)
+            
+        else:
+            df = df.sum(numeric_only=True)
+
+        for key in self.predictions.keys():
+                df[str(key) + '_yield'] = df[key] / df['Ha']
+
+        df['actuals_yield'] = df['actuals'] / df['Ha']
+            
+        return df
+
+        
