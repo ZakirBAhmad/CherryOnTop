@@ -1,6 +1,7 @@
 #imports
 import pandas as pd
 import numpy as np
+from typing import Optional, List, Dict
 
 
 
@@ -17,7 +18,7 @@ class CherryTable(object):
         num_weeks: Integer specifying number of weeks to track (default 20). If None, the table is seasonal
     returns: None
     """
-    def __init__(self, meta, predictions, actuals = None,num_weeks=20):
+    def __init__(self, meta: pd.DataFrame, predictions: Dict[str, np.ndarray], actuals: Optional[np.ndarray] = None, num_weeks: int = 20):
         self.meta = meta #(N,F), number of features, dataframe
         self.num_weeks = num_weeks #int
         self.predictions = predictions #(N,num_weeks), dict of numpy arrays
@@ -26,7 +27,7 @@ class CherryTable(object):
         else:
             self.actuals = np.zeros((len(self.meta), self.num_weeks))
         
-    def by_planting_id(self, planting_id_list):
+    def by_planting_id(self, planting_id_list: List[str]) -> Optional['CherryTable']:
         """
         desc: Filters the table data by a list of planting IDs
         params:
@@ -59,7 +60,8 @@ class CherryTable(object):
 
         return filtered
 
-    def filter(self, ranch_list=None, class_list=None, type_list=None, variety_list=None):
+    def filter(self, ranch_list: Optional[List[str]] = None, class_list: Optional[List[str]] = None, 
+              type_list: Optional[List[str]] = None, variety_list: Optional[List[str]] = None) -> Optional['CherryTable']:
         """
         desc: Filters the table data by ranch, class, type and variety
         params:
@@ -87,7 +89,7 @@ class CherryTable(object):
         #creating labels
         labels = self.meta.index[mask]
         #filtering by labels
-        return self.by_planting_id(labels)
+        return self.by_planting_id(list(labels))
     
     def season_table(self):
         """
@@ -220,7 +222,7 @@ class CherryTable(object):
             #cumulative proportions
             df3 = df2.div(df2.iloc[:, -1], axis=0)
             
-            return len(group_cols), {'total': df.T, 'total_cumsum': df2.T, 'total_cumprop': df3.T}, hectares
+            return len(group_cols), {'total': df, 'total_cumsum': df2, 'total_cumprop': df3}, hectares
         
         else:
             #hectares data
@@ -245,9 +247,9 @@ class CherryTable(object):
                 #cumulative proportions
                 result_df3 = result_df2.div(result_df2.iloc[:, -1], axis=0)
                 #adding to dictionary
-                summed_matrices[str(key) + '_summed'] = result_df.T
-                summed_matrices[str(key) + '_summed_cumsum'] = result_df2.T
-                summed_matrices[str(key) + '_summed_cumprop'] = result_df3.T
+                summed_matrices[str(key) + '_summed'] = result_df
+                summed_matrices[str(key) + '_summed_cumsum'] = result_df2
+                summed_matrices[str(key) + '_summed_cumprop'] = result_df3
 
             if include_actuals:
                 #summing actuals
@@ -263,9 +265,9 @@ class CherryTable(object):
                 #cumulative proportions
                 actuals_df3 = actuals_df2.div(actuals_df2.iloc[:, -1], axis=0)
                 #adding to dictionary
-                summed_matrices['actuals_summed'] = actuals_df.T
-                summed_matrices['actuals_summed_cumsum'] = actuals_df2.T
-                summed_matrices['actuals_summed_cumprop'] = actuals_df3.T
+                summed_matrices['actuals_summed'] = actuals_df
+                summed_matrices['actuals_summed_cumsum'] = actuals_df2
+                summed_matrices['actuals_summed_cumprop'] = actuals_df3
 
             return len(group_cols), summed_matrices, hectares
 
