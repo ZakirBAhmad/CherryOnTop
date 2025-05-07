@@ -54,7 +54,7 @@ def graph_preds_reg(df, af, title, color_palette='Viridis'):
             y=1,
             yanchor='top'
         )],
-        title=title + ' Trace Filter with Dropdown',
+        title=title,
         template='plotly_white',
         xaxis_title='Week after Transplant',
         yaxis_title='Harvest (kg)'
