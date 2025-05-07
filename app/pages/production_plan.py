@@ -12,30 +12,42 @@
 
 import streamlit as st
 
-def show_production_plan():
-    st.title("Production Plan")
-    
-    # Placeholder for data loading
-    st.write("This page will show the production plan with the following features:")
-    st.write("- Planting meta data in pivot table format")
-    st.write("- Filtering options by ranch, class, type, and variety")
-    st.write("- Projection button to run predictions")
-    st.write("- Graphs showing hectares by week of the year")
-    
-    # Placeholder for filters
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.selectbox("Select Ranch", ["All", "Ranch 1", "Ranch 2"])
-    with col2:
-        st.selectbox("Select Class", ["All", "Class 1", "Class 2"])
-    with col3:
-        st.selectbox("Select Type", ["All", "Type 1", "Type 2"])
-    with col4:
-        st.selectbox("Select Variety", ["All", "Variety 1", "Variety 2"])
-    
-    # Placeholder for run projections button
-    if st.button("Run Projections"):
-        st.write("Projections will be calculated here")
-    
-    # Placeholder for graphs
-    st.write("Graphs will be displayed here")
+st.title("Production Plan")
+st.write("This is the production plan page.")
+
+table = st.session_state.table
+# Create filter columns
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    ranches = st.checkbox('Filter by Ranch', value=True)
+    if ranches:
+        ranch_options = sorted(table.meta['Ranch'].unique())
+        selected_ranches = st.multiselect('Select Ranches', ranch_options, default=ranch_options)
+
+with col2:
+    types = st.checkbox('Filter by Type', value=True) 
+    if types:
+        type_options = sorted(table.meta['Type'].unique())
+        selected_types = st.multiselect('Select Types', type_options, default=type_options)
+
+with col3:
+    classes = st.checkbox('Filter by Class', value=True)
+    if classes:
+        class_options = sorted(table.meta['Class'].unique())
+        selected_classes = st.multiselect('Select Classes', class_options, default=class_options)
+
+with col4:
+    varieties = st.checkbox('Filter by Variety', value=True)
+    if varieties:
+        variety_options = sorted(table.meta['Variety'].unique())
+        selected_varieties = st.multiselect('Select Varieties', variety_options, default=variety_options)
+
+# Filter the data based on selections
+filtered_data = table.filter(ranch_list=selected_ranches, type_list=selected_types, class_list=selected_classes, variety_list=selected_varieties)
+
+
+st.write("Filtered Data:")
+st.dataframe(filtered_data.meta)
+
+st.session_state.filtered_data = filtered_data
