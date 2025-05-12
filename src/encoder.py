@@ -4,6 +4,7 @@ import torch.nn as nn
 class ClimateEncoder(nn.Module):
     def __init__(self,
                  input_dim=5,
+                 embedding_dim=4,
                  hidden_dim=64,
                  n_ranches=13,
                  n_classes=2,
@@ -27,10 +28,10 @@ class ClimateEncoder(nn.Module):
         )
 
         # Embedding dimensions
-        self.ranch_dim = 4  # 12 ranches
-        self.class_dim = 8  # 2 classes
-        self.type_dim = 6  # 14 types
-        self.variety_dim = 4  # 38 varieties
+        self.ranch_dim = embedding_dim  # 12 ranches
+        self.class_dim = embedding_dim  # 2 classes
+        self.type_dim = embedding_dim  # 14 types
+        self.variety_dim = embedding_dim  # 38 varieties
 
         self.ranch_emb = nn.Embedding(n_ranches, self.ranch_dim)
         self.class_emb = nn.Embedding(n_classes, self.class_dim)

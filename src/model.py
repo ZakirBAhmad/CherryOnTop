@@ -7,6 +7,7 @@ class HarvestModel(nn.Module):
     def __init__(self,
                  input_dim=5,
                  hidden_dim=64,
+                 embedding_dim=4,
                  n_ranches=13,
                  n_classes=2,
                  n_types=14,
@@ -19,6 +20,7 @@ class HarvestModel(nn.Module):
         self.encoder = ClimateEncoder(
             input_dim=input_dim,
             hidden_dim=hidden_dim,
+            embedding_dim=embedding_dim,
             n_ranches=n_ranches,
             n_classes=n_classes,
             n_types=n_types,
