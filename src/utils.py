@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from src.model import HarvestGRUModel  
+from src.model import HarvestModel  
 
 
 def train_harvest_model(train_dataset, num_epochs=5, batch_size=32, lr=1e-3):
@@ -12,7 +12,7 @@ def train_harvest_model(train_dataset, num_epochs=5, batch_size=32, lr=1e-3):
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     # Initialize Model
-    model = HarvestGRUModel()
+    model = HarvestModel()
 
     # Loss and optimizer
     criterion = nn.MSELoss()
