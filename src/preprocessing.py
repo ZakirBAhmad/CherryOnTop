@@ -82,8 +82,8 @@ def construct_dataset(planting_meta, weekly_summary,mapping_dict):
     features = np.column_stack([
         planting_meta['Ha'].values,                    # Hectares
         planting_meta['WeekTransplanted_sin'].values,  # Week sine
-        planting_meta['WeekTransplanted_cos'].values,
-        planting_meta['Year'].values,
+        planting_meta['WeekTransplanted_cos'].values,  # Week cosine
+        planting_meta['Year'].values,                  # Year
         np.ones(len(planting_meta))                    # Constant feature
     ])
     ranch_ids = planting_meta['Ranch'].map(mapping_dict['Ranch']).values
