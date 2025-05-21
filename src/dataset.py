@@ -38,20 +38,11 @@ class HarvestDataset(Dataset):
                  type_ids,         # (N,)
                  variety_ids,      # (N,)
                  climate_data,     # (N, 100, 3)
-                 Y_kilos = None          # (N, 20)
+                 Y_kilos,          # (N, 20)
+                 stats
                 ):
     
-        # Validate shapes
-        N = len(features)
-        if Y_kilos is None:
-            Y_kilos = np.zeros((N, 20))
-        assert features.shape == (N, 5), f"Expected features shape (N, 5), got {features.shape}"
-        assert ranch_ids.shape == (N,), f"Expected ranch_ids shape (N,), got {ranch_ids.shape}"
-        assert class_ids.shape == (N,), f"Expected class_ids shape (N,), got {class_ids.shape}"
-        assert type_ids.shape == (N,), f"Expected type_ids shape (N,), got {type_ids.shape}"
-        assert variety_ids.shape == (N,), f"Expected variety_ids shape (N,), got {variety_ids.shape}"
-        assert climate_data.shape == (N, 100, 3), f"Expected climate_data shape (N, 100, 3), got {climate_data.shape}"
-        assert Y_kilos.shape == (N, 20), f"Expected Y_kilos shape (N, 20), got {Y_kilos.shape}"
+       
 
         # Convert to tensors
         self.features = torch.tensor(features, dtype=torch.float32)
@@ -61,6 +52,14 @@ class HarvestDataset(Dataset):
         self.variety_ids = torch.tensor(variety_ids, dtype=torch.long)
         self.climate_data = torch.tensor(climate_data, dtype=torch.float32)
         self.Y_kilos = torch.tensor(Y_kilos, dtype=torch.float32)
+        
+        # Handle stats tensor
+        if stats is not None:
+            stats = torch.tensor(stats, dtype=torch.float32)
+            self.Y = torch.cat((self.Y_kilos, stats), dim=1)
+        else:
+            self.Y = self.Y_kilos
+            
 
     def __len__(self):
         return len(self.features)
@@ -73,7 +72,9 @@ class HarvestDataset(Dataset):
             self.type_ids[idx],
             self.variety_ids[idx],
             self.climate_data[idx],
-            self.Y_kilos[idx])
+            self.Y[idx]
+        )
+    
     
     def get_shapes(self):
         """
@@ -90,6 +91,7 @@ class HarvestDataset(Dataset):
             'class_ids': self.class_ids.shape,
             'type_ids': self.type_ids.shape,
             'variety_ids': self.variety_ids.shape,
-            'Y_kilos': self.Y_kilos.shape
+            'Y_kilos': self.Y.shape
         }
         return shapes
+    

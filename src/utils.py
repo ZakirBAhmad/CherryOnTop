@@ -24,13 +24,13 @@ def train_harvest_model(train_dataset, num_epochs=5, batch_size=32, lr=1e-3):
         total_loss = 0
 
         for batch in train_loader:
-            features, ranch_id, class_id, type_id, variety_id, climate_data, Y_kilos = batch
+            features, ranch_id, class_id, type_id, variety_id, climate_data, y = batch
 
     
 
             # Forward pass
             outputs = model(features, ranch_id, class_id, type_id, variety_id, climate_data)
-            loss = criterion(outputs, Y_kilos)
+            loss = criterion(outputs, y)
 
             # Backward and optimize
             optimizer.zero_grad()

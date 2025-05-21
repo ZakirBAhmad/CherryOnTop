@@ -1,4 +1,3 @@
-
 import sys
 import os
 
@@ -12,33 +11,26 @@ from plotly import colors
 from plotly.colors import sample_colorscale
 
 import streamlit as st
-from src.table import CherryTable
-import src.utils as utils
-import src.preprocessing as pre
-import src.graphs as graphs
+import demo
 
-train, test, mapping_dict = pre.separate_year(planting_meta_path='../data/planting_meta.json', weekly_summary_path='../data/weekly_summary.csv')
-model =utils.train_harvest_model(train)
-predictions = utils.predict_harvest(model, test)
 
-meta = pre.decode(test, mapping_dict)
-actuals = test.Y_kilos.detach().numpy()
+train, test = demo.initialize_datasets()
+model = demo.train_model(train)
 
-st.session_state.table = CherryTable(meta, {'predictions':predictions}, actuals)
+print('Model trained')
 
 st.set_page_config(
-    page_title="Cherry On Top",
-    page_icon="🍒",
+    page_title="Harvest Forecasting",
+    page_icon="🌱",
     layout="wide"
 )
 
-st.title("Cherry On Top")
-st.write("Welcome to the Cherry On Top application!")
-st.write("This is a work in progress, please be patient.")
+st.title("Harvest Forecasting")
 
-# Navigation
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Harvest Curves", "Harvest Summary", "Production Plan", "Harvest Actuals"])
+page = st.sidebar.selectbox(
+    "Select a page",
+    ["Home", "Harvest Curves", "Harvest Summary", "Production Plan", "Harvest Actuals"]
+)
 
 if page == "Home":
     st.write("This is the home page.")
