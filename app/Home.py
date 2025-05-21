@@ -1,44 +1,33 @@
-import sys
-import os
-
-# Add the parent directory to sys.path
-sys.path.append(os.path.abspath('..'))
-
+import streamlit as st
 import pandas as pd
 import numpy as np
-from plotly import graph_objects as go
-from plotly import colors
-from plotly.colors import sample_colorscale
+from src.dataset import HarvestDataset
+import src.preprocessing as pre
+from src.model import HarvestModel
+from torch.utils.data import DataLoader
+import torch.nn as nn
+import torch.optim as optim
+from src.utils import train_harvest_model, predict_harvest
 
-import streamlit as st
-import demo
+# Load and process data
+train, test, mappings, test_meta = pre.separate_year('data/planting_meta.json', 'data/y.csv', 'data/mapping_dict.json')
 
+# Create reverse mapping dictionary for each category
+reverse_mappings = {}
+for category in mappings:
+    reverse_mappings[category] = {v: k for k, v in mappings[category].items()}
 
-train, test = demo.initialize_datasets()
-model = demo.train_model(train)
+model = train_harvest_model(train,num_epochs=30)
+preds = predict_harvest(model, test)
 
-print('Model trained')
+meta = test_meta[['WeekTransplanted','Ranch','Class','Type','Variety','Ha']].copy()
 
-st.set_page_config(
-    page_title="Harvest Forecasting",
-    page_icon="🌱",
-    layout="wide"
-)
+meta['Ranch'] = meta['Ranch'].map(reverse_mappings['Ranch'])  
+meta['Class'] = meta['Class'].map(reverse_mappings['Class']) 
+meta['Type'] = meta['Type'].map(reverse_mappings['Type'])
+meta['Variety'] = meta['Variety'].map(reverse_mappings['Variety'])
 
-st.title("Harvest Forecasting")
+st.title('Cherry On Top')
 
-page = st.sidebar.selectbox(
-    "Select a page",
-    ["Home", "Harvest Curves", "Harvest Summary", "Production Plan", "Harvest Actuals"]
-)
-
-if page == "Home":
-    st.write("This is the home page.")
-elif page == "Harvest Curves":
-    st.write("Harvest curves visualization will be here.")
-elif page == "Harvest Summary":
-    st.write("Harvest summary will be here.")
-elif page == "Production Plan":
-    st.write("Production planning tools will be here.")
-elif page == "Harvest Actuals":
-    st.write("Harvest actuals data will be here.") 
+st.write(meta)
+st.write(preds)

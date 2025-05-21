@@ -2,14 +2,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-
+import streamlit as st
 from src.model import HarvestModel  
 
-
-def train_harvest_model(train_dataset, num_epochs=5, batch_size=32, lr=1e-3):
+@st.cache_resource
+def train_harvest_model(_train_dataset, num_epochs=5, batch_size=32, lr=1e-3):
     
     # Create DataLoader
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(_train_dataset, batch_size=batch_size, shuffle=True)
 
     # Initialize Model
     model = HarvestModel()
@@ -44,14 +44,15 @@ def train_harvest_model(train_dataset, num_epochs=5, batch_size=32, lr=1e-3):
 
     return model
 
-def predict_harvest(model, test_dataset):
-    model.eval()
+@st.cache_data
+def predict_harvest(_model, _test_dataset):
+    _model.eval()
     with torch.no_grad():
         test_predictions = []
     
-        test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+        test_loader = DataLoader(_test_dataset, batch_size=64, shuffle=False)
         for batch in test_loader:
                 features, ranch_id, class_id, type_id, variety_id, climate_data, Y_kilos = batch
-                outputs = model(features, ranch_id, class_id, type_id, variety_id, climate_data)
+                outputs = _model(features, ranch_id, class_id, type_id, variety_id, climate_data)
                 test_predictions.append(outputs)
     return torch.cat(test_predictions, dim=0).detach().numpy()
