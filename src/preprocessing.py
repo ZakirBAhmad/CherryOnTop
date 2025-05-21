@@ -43,7 +43,7 @@ def separate_year(path_meta, path_y, path_mapping_dict,year = 2024):
     train_dataset = make_dataset(train_meta,train_y)
     test_dataset = make_dataset(test_meta,test_y)
     
-    return train_dataset, test_dataset, mapping_dict
+    return train_dataset, test_dataset, mapping_dict, test_meta
 
 def make_dataset(meta,y):
     """
