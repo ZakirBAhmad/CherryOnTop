@@ -222,7 +222,7 @@ class CherryTable(object):
             #cumulative proportions
             df3 = df2.div(df2.iloc[:, -1], axis=0)
             
-            return len(group_cols), {'total': df, 'total_cumsum': df2, 'total_cumprop': df3}, hectares
+            return 3, {'total': df, 'total_cumsum': df2, 'total_cumprop': df3}, hectares
         
         else:
             #hectares data
@@ -269,6 +269,6 @@ class CherryTable(object):
                 summed_matrices['actuals_summed_cumsum'] = actuals_df2
                 summed_matrices['actuals_summed_cumprop'] = actuals_df3
 
-            return len(group_cols), summed_matrices, hectares
+            return len(summed_matrices), summed_matrices, hectares
 
 

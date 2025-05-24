@@ -43,11 +43,15 @@ with col4:
         variety_options = sorted(table.meta['Variety'].unique())
         selected_varieties = st.multiselect('Select Varieties', variety_options, default=variety_options)
 
-# Filter the data based on selections
-filtered_data = table.filter(ranch_list=selected_ranches, type_list=selected_types, class_list=selected_classes, variety_list=selected_varieties)
-
+filtered_meta = table.meta.copy()
+if ranches:
+    filtered_meta = filtered_meta[filtered_meta['Ranch'].isin(selected_ranches)]
+if types:
+    filtered_meta = filtered_meta[filtered_meta['Type'].isin(selected_types)]
+if classes:
+    filtered_meta = filtered_meta[filtered_meta['Class'].isin(selected_classes)]
+if varieties:
+    filtered_meta = filtered_meta[filtered_meta['Variety'].isin(selected_varieties)]
 
 st.write("Filtered Data:")
-st.dataframe(filtered_data.meta)
-
-st.session_state.filtered_data = filtered_data
+st.dataframe(filtered_meta)

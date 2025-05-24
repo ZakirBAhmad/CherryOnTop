@@ -20,14 +20,65 @@ for category in mappings:
 model = train_harvest_model(train,num_epochs=30)
 preds = predict_harvest(model, test)
 
-meta = test_meta[['WeekTransplanted','Ranch','Class','Type','Variety','Ha']].copy()
+meta = test_meta[['Ranch','Class','Type','Variety','Ha']].copy()
 
 meta['Ranch'] = meta['Ranch'].map(reverse_mappings['Ranch'])  
 meta['Class'] = meta['Class'].map(reverse_mappings['Class']) 
 meta['Type'] = meta['Type'].map(reverse_mappings['Type'])
 meta['Variety'] = meta['Variety'].map(reverse_mappings['Variety'])
 
-st.title('Cherry On Top')
+grouped_meta = meta.groupby(['Ranch','Class','Type','Variety']).agg({'Ha':'sum'}).reset_index()
 
-st.write(meta)
-st.write(preds)
+st.title('Cherry On Top')
+st.write('Production Plan')
+# Create filters
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    ranch_filter = st.multiselect(
+        'Ranch',
+        options=sorted(grouped_meta['Ranch'].unique()),
+        default=sorted(grouped_meta['Ranch'].unique())
+    )
+
+with col2:
+    class_filter = st.multiselect(
+        'Class', 
+        options=sorted(grouped_meta['Class'].unique()),
+        default=sorted(grouped_meta['Class'].unique())
+    )
+
+with col3:
+    type_filter = st.multiselect(
+        'Type',
+        options=sorted(grouped_meta['Type'].unique()),
+        default=sorted(grouped_meta['Type'].unique())
+    )
+
+with col4:
+    variety_filter = st.multiselect(
+        'Variety',
+        options=sorted(grouped_meta['Variety'].unique()),
+        default=sorted(grouped_meta['Variety'].unique())
+    )
+
+# Filter both dataframes
+filtered_meta = meta[
+    meta['Ranch'].isin(ranch_filter) &
+    meta['Class'].isin(class_filter) &
+    meta['Type'].isin(type_filter) &
+    meta['Variety'].isin(variety_filter)
+]
+
+filtered_grouped_meta = grouped_meta[
+    grouped_meta['Ranch'].isin(ranch_filter) &
+    grouped_meta['Class'].isin(class_filter) &
+    grouped_meta['Type'].isin(type_filter) &
+    grouped_meta['Variety'].isin(variety_filter)
+]
+
+
+
+st.write(filtered_grouped_meta)
+st.write('Individual Batches')
+st.write(filtered_meta)

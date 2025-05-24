@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-import streamlit as st
+
 from src.model import HarvestModel  
 
-@st.cache_resource
+
 def train_harvest_model(_train_dataset, num_epochs=5, batch_size=32, lr=1e-3):
     
     # Create DataLoader
@@ -30,6 +30,8 @@ def train_harvest_model(_train_dataset, num_epochs=5, batch_size=32, lr=1e-3):
 
             # Forward pass
             outputs = model(features, ranch_id, class_id, type_id, variety_id, climate_data)
+
+
             loss = criterion(outputs, y)
 
             # Backward and optimize
@@ -44,7 +46,7 @@ def train_harvest_model(_train_dataset, num_epochs=5, batch_size=32, lr=1e-3):
 
     return model
 
-@st.cache_data
+
 def predict_harvest(_model, _test_dataset):
     _model.eval()
     with torch.no_grad():

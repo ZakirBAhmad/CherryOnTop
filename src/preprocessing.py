@@ -69,7 +69,6 @@ def make_dataset(meta,y):
     types = meta['Type'].to_numpy()
     climate_data = np.array(meta.ClimateSeries.to_list())
     y_kilos = y.iloc[:,:20].to_numpy()
-    y_stats = y.iloc[:,20:].to_numpy()
 
     return HarvestDataset(
         features,
@@ -78,6 +77,17 @@ def make_dataset(meta,y):
         types,
         varieties,
         climate_data,
-        y_kilos,
-        y_stats
+        y_kilos
     )
+
+def decode(meta,mapping_dict):
+    """
+    Decode metadata using mapping dictionary.
+    
+    Parameters:
+        meta (pd.DataFrame): DataFrame containing metadata
+        mapping_dict (dict): Mapping dictionary
+    """
+    for key,value in mapping_dict.items():
+        meta[key] = meta[key].map(dict(zip(value.values(),value.keys())))
+    return meta

@@ -38,8 +38,7 @@ class HarvestDataset(Dataset):
                  type_ids,         # (N,)
                  variety_ids,      # (N,)
                  climate_data,     # (N, 100, 3)
-                 Y_kilos,          # (N, 20)
-                 stats
+                 Y_kilos          # (N, 20)
                 ):
     
        
@@ -51,14 +50,9 @@ class HarvestDataset(Dataset):
         self.type_ids = torch.tensor(type_ids, dtype=torch.long)
         self.variety_ids = torch.tensor(variety_ids, dtype=torch.long)
         self.climate_data = torch.tensor(climate_data, dtype=torch.float32)
-        self.Y_kilos = torch.tensor(Y_kilos, dtype=torch.float32)
+        self.Y = torch.tensor(Y_kilos, dtype=torch.float32)
         
-        # Handle stats tensor
-        if stats is not None:
-            stats = torch.tensor(stats, dtype=torch.float32)
-            self.Y = torch.cat((self.Y_kilos, stats), dim=1)
-        else:
-            self.Y = self.Y_kilos
+
             
 
     def __len__(self):
