@@ -27,7 +27,7 @@ class CherryTable(object):
         else:
             self.actuals = np.zeros((len(self.meta), self.num_weeks))
         
-    def by_planting_id(self, planting_id_list: List[str]) -> Optional['CherryTable']:
+    def by_planting_id(self, planting_id_list: List[str]):
         """
         desc: Filters the table data by a list of planting IDs
         params:
@@ -43,13 +43,13 @@ class CherryTable(object):
         valid_idx = idx[valid]
         #no valid indices
         if len(valid_idx) == 0:
-            print(f"No valid indices found for planting_id_list: {planting_id_list}, returning None")
-            return None
+            print(f"No valid indices found for planting_id_list: {planting_id_list}")
+
         #some indices not found
         elif len(valid_idx) < len(planting_id_list):
             diff = len(planting_id_list) - len(valid_idx)
-            print(f" {diff} indices not found for planting_id_list: {planting_id_list}, returning None")
-            return None
+            print(f" {diff} indices not found for planting_id_list: {planting_id_list}")
+
         #creating filtered table    
         filtered = CherryTable(
             self.meta.iloc[valid_idx],
@@ -61,7 +61,7 @@ class CherryTable(object):
         return filtered
 
     def filter(self, ranch_list: Optional[List[str]] = None, class_list: Optional[List[str]] = None, 
-              type_list: Optional[List[str]] = None, variety_list: Optional[List[str]] = None) -> Optional['CherryTable']:
+              type_list: Optional[List[str]] = None, variety_list: Optional[List[str]] = None):
         """
         desc: Filters the table data by ranch, class, type and variety
         params:
@@ -151,7 +151,7 @@ class CherryTable(object):
 
         #creating dataframe with metadata and hectares
         df = self.meta.copy()[group_cols + ['Ha']]
-
+        
         #summing predictions
         for key, pred in self.predictions.items():
             df[key] = pred.sum(axis=1)
@@ -174,7 +174,9 @@ class CherryTable(object):
         if include_actuals:
             #calculating yield
             df['actuals_yield'] = df['actuals'] / df['Ha']
-            
+
+        vals = self.meta.pivot_table(index = group_cols,columns = 'WeekTransplanted',values = 'Ha')
+        df = pd.concat([df,vals],axis=1).fillna(0)
         return df
 
     def graph_ready(self,ranches=False, classes=False, types=False, varieties=False,include_actuals=True):

@@ -1,14 +1,14 @@
 import plotly.graph_objects as go
 from plotly.colors import sample_colorscale
 
-def graph_season_table(table, title, palette='Viridis'):
+def graph_season_table(table, title, palette='Agsunset'):
     figs = []
     summaries = []
     _,ranch_data,_ = table.graph_ready(True,False,False,include_actuals=True)
     summaries.append(table.summary(True,False,False))
     pf = ranch_data['preds_summed']
     af = ranch_data['actuals_summed']
-    label = title + ' Ranches'
+    label = title + ' Ranches Predictions vs Actuals'
     figs.append(graph_with_actuals(pf,af,label,palette))
 
 
@@ -42,7 +42,7 @@ def graph_season_table(table, title, palette='Viridis'):
 
     return figs, summaries
 
-def graph_transplant_table(table, title, palette='Viridis'):
+def graph_transplant_table(table, title, palette='Agsunset'):
     figs = []
     summaries = []
     for key in ['summed','summed_cumsum','summed_cumprop']:
@@ -50,7 +50,7 @@ def graph_transplant_table(table, title, palette='Viridis'):
         summaries.append(table.summary(True,False,False))
         pf = ranch_data['preds_' + key]
         af = ranch_data['actuals_' + key]
-        label = title + ' Ranches'
+        label = title + ' Ranches '
         figs.append(graph_with_actuals(pf,af,label,palette))
 
 
@@ -58,32 +58,32 @@ def graph_transplant_table(table, title, palette='Viridis'):
         summaries.append(table.summary(False,True,False))
         pf = class_data['preds_' + key]
         af = class_data['actuals_' + key]
-        label = title + ' Classes'
+        label = title + ' Classes ' + key
         figs.append(graph_with_actuals(pf,af,label,palette))
 
         _,type_data,_ = table.graph_ready(False,True,True,include_actuals=True)    
         summaries.append(table.summary(False,True,True))
         pf = type_data['preds_' + key]
         af = type_data['actuals_' + key]
-        label = title + ' Types'
+        label = title + ' Types ' + key
         figs.append(graph_with_actuals(pf,af,label,palette))
 
         _,ranch_class,_ = table.graph_ready(True,True,False,include_actuals=True)
         summaries.append(table.summary(True,True,False))
         pf = ranch_class['preds_' + key]
         af = ranch_class['actuals_' + key]
-        label = title + ' Ranches, Classes, and Types'
+        label = title + ' Ranches, Classes, and Types ' + key
         figs.append(graph_with_actuals(pf,af,label,palette))
 
         _,ranch_class_type,_ = table.graph_ready(True,True,True,include_actuals=True)
         summaries.append(table.summary(True,True,True))
         pf = ranch_class_type['preds_' + key]
         af = ranch_class_type['actuals_' + key]
-        label = title + ' Ranches, Classes, and Types'
+        label = title + ' Ranches, Classes, and Types ' + key
         figs.append(graph_with_actuals(pf,af,label,palette))
     return figs, summaries
 
-def graph_with_actuals(pf, af, title, palette='Viridis'):
+def graph_with_actuals(pf, af, title, palette='Agsunset'):
     """
     desc:
         Create a plotly figure with predicted and actual values for regression data.

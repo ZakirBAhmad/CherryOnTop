@@ -60,7 +60,7 @@ def make_dataset(meta,y):
     meta['Ha'].to_numpy(),                    # Hectares
     meta['WeekTransplanted_sin'].to_numpy(),  # Week sine
     meta['WeekTransplanted_cos'].to_numpy(),  # Week cosine
-    meta['Year'].to_numpy(),                  # Year
+    meta['Year'].to_numpy() - 2010,                  # Year
     np.ones(len(meta))                    # Constant feature
     ])
     ranches = meta['Ranch'].to_numpy()
@@ -88,6 +88,7 @@ def decode(meta,mapping_dict):
         meta (pd.DataFrame): DataFrame containing metadata
         mapping_dict (dict): Mapping dictionary
     """
+    meta = meta.copy()
     for key,value in mapping_dict.items():
         meta[key] = meta[key].map(dict(zip(value.values(),value.keys())))
     return meta

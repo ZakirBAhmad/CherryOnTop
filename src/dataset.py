@@ -85,6 +85,7 @@ class HarvestDataset(Dataset):
             'class_ids': self.class_ids.shape,
             'type_ids': self.type_ids.shape,
             'variety_ids': self.variety_ids.shape,
+            'climate_data': self.climate_data.shape,
             'Y_kilos': self.Y.shape
         }
         return shapes
