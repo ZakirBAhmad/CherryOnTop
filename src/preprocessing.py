@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import json
 from src.dataset import HarvestDataset
-import streamlit as st
+
 def load_data(path_meta, path_y, path_mapping_dict):
     """
     Load data from JSON and CSV files.
@@ -20,7 +20,6 @@ def load_data(path_meta, path_y, path_mapping_dict):
     mapping_dict = json.load(open(path_mapping_dict))
     return meta, y, mapping_dict
 
-@st.cache_resource
 def separate_year(path_meta, path_y, path_mapping_dict,year = 2024):
     """
     Split data into training and test sets based on year.

@@ -1,38 +1,33 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-from src.dataset import HarvestDataset
-import src.preprocessing as pre
-from src.model import HarvestModel
-from torch.utils.data import DataLoader
-import torch.nn as nn
-import torch.optim as optim
-from src.utils import train_harvest_model, predict_harvest
-
-# Load and process data
-train, test, mappings, test_meta = pre.separate_year('data/planting_meta.json', 'data/y.csv', 'data/mapping_dict.json')
-
-# Create reverse mapping dictionary for each category
-reverse_mappings = {}
-for category in mappings:
-    reverse_mappings[category] = {v: k for k, v in mappings[category].items()}
-
-model = train_harvest_model(train,num_epochs=30)
-preds = predict_harvest(model, test)
-
-meta = test_meta[['Ranch','Class','Type','Variety','Ha']].copy()
-
-meta['Ranch'] = meta['Ranch'].map(reverse_mappings['Ranch'])  
-meta['Class'] = meta['Class'].map(reverse_mappings['Class']) 
-meta['Type'] = meta['Type'].map(reverse_mappings['Type'])
-meta['Variety'] = meta['Variety'].map(reverse_mappings['Variety'])
-
-grouped_meta = meta.groupby(['Ranch','Class','Type','Variety']).agg({'Ha':'sum'}).reset_index()
+import sys
+import os
 
 st.title('Cherry On Top')
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import src.preprocessing as pre 
+import app.demo as demo
+
+
+train, test, mappings, meta = demo.initialize_data('data/planting_meta.json','data/y.csv','data/mapping_dict.json')
+st.session_state['train'] = train
+st.session_state['test'] = test
+st.session_state['mappings'] = mappings
+st.session_state['meta'] = meta
+
+model = demo.create_model(train)
+st.session_state['model'] = model
+
+st.write('Model initialized')
+
+
+grouped_meta = meta.pivot_table(index=['Ranch','Class','Type'],columns = 'WeekTransplanted',values='Ha').reset_index()
+
 st.write('Production Plan')
 # Create filters
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     ranch_filter = st.multiselect(
@@ -55,30 +50,27 @@ with col3:
         default=sorted(grouped_meta['Type'].unique())
     )
 
-with col4:
-    variety_filter = st.multiselect(
-        'Variety',
-        options=sorted(grouped_meta['Variety'].unique()),
-        default=sorted(grouped_meta['Variety'].unique())
-    )
 
 # Filter both dataframes
 filtered_meta = meta[
     meta['Ranch'].isin(ranch_filter) &
     meta['Class'].isin(class_filter) &
-    meta['Type'].isin(type_filter) &
-    meta['Variety'].isin(variety_filter)
+    meta['Type'].isin(type_filter) 
 ]
 
 filtered_grouped_meta = grouped_meta[
     grouped_meta['Ranch'].isin(ranch_filter) &
     grouped_meta['Class'].isin(class_filter) &
-    grouped_meta['Type'].isin(type_filter) &
-    grouped_meta['Variety'].isin(variety_filter)
+    grouped_meta['Type'].isin(type_filter)
 ]
 
 
 
 st.write(filtered_grouped_meta)
-st.write('Individual Batches')
-st.write(filtered_meta)
+
+if st.button('Predict'):
+    preds = demo.create_predictions(model,test,meta,'preds')
+    st.session_state['preds'] = preds
+    st.session_state['filtered_table'] = st.session_state['preds'].filter(ranch_list=ranch_filter,class_list=class_filter,type_list=type_filter)
+
+

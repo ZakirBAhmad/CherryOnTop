@@ -97,9 +97,11 @@ def graph_with_actuals(pf, af, title, palette='Agsunset'):
     returns:
         Interactive figure with dropdown menu to filter traces
     """
+
     fig = go.Figure()
     x_values = pf.columns
-    colors = sample_colorscale(palette, [i / (len(pf.index) - 1) for i in range(len(pf.index))])
+    count = len(pf)
+    colors = sample_colorscale(palette, [i / (count -1) for i in range(count)])
     for i, row in enumerate(pf.index):
         label = str(row)
         fig.add_trace(go.Scatter(x=x_values, y=pf.loc[row], name=label, marker_color=colors[i]))
