@@ -51,6 +51,14 @@ class HarvestDataset(Dataset):
         self.variety_ids = torch.tensor(variety_ids, dtype=torch.long)
         self.climate_data = torch.tensor(climate_data, dtype=torch.float32)
         self.Y = torch.tensor(Y_kilos, dtype=torch.float32)
+        self.harvest = self.Y.nonzero()
+        if len(self.harvest) == 0:
+            self.start_harvest = 0
+            self.end_harvest = 20
+        else:
+            self.start_harvest = self.harvest[0,0]
+            self.end_harvest = self.harvest[-1,0]
+
         
 
             
