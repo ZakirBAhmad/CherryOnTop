@@ -18,6 +18,7 @@ class HarvestModel(nn.Module):
         super().__init__()
         
         self.output_dim = output_dim
+        
         self.encoder = ClimateEncoder(
             input_dim=input_dim,
             hidden_dim=hidden_dim,
