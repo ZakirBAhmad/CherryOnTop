@@ -1,7 +1,7 @@
 #imports
 import streamlit as st
 import src.preprocessing as pre
-from src.utils import train_harvest_model, predict_harvest
+from src.utils import create_model, predict_harvest
 from src.table import CherryTable
 
 @st.cache_resource
@@ -11,8 +11,8 @@ def initialize_data(path_meta, path_y, path_mapping_dict):
     return train, test, mappings, meta
 
 @st.cache_resource
-def create_model(_train,num_epochs=30):
-    model = train_harvest_model(_train,num_epochs=num_epochs)
+def create_model(train_dataset,num_epochs=30):
+    model = create_model(train_dataset,num_epochs=num_epochs)
     return model
 
 def create_predictions(model,test,meta,name):

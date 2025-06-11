@@ -1,9 +1,8 @@
 #imports
 import torch
 from torch.utils.data import Dataset
-import numpy as np
 
-#class
+
 class HarvestDataset(Dataset):
     """
     A PyTorch Dataset class for handling harvest data.
@@ -38,7 +37,9 @@ class HarvestDataset(Dataset):
                  type_ids,         # (N,)
                  variety_ids,      # (N,)
                  climate_data,     # (N, 100, 3)
-                 Y_kilos          # (N, 20)
+                 Y_kilos,         # (N, 20)
+                 mean=None,
+                 std=None
                 ):
     
        
@@ -51,30 +52,36 @@ class HarvestDataset(Dataset):
         self.variety_ids = torch.tensor(variety_ids, dtype=torch.long)
         self.climate_data = torch.tensor(climate_data, dtype=torch.float32)
         self.Y = torch.tensor(Y_kilos, dtype=torch.float32)
-        self.harvest = self.Y.nonzero()
-        if len(self.harvest) == 0:
-            self.start_harvest = 0
-            self.end_harvest = 20
-        else:
-            self.start_harvest = self.harvest[0,0]
-            self.end_harvest = self.harvest[-1,0]
+        nonzero = self.Y != 0
 
-        
+        idx = torch.arange(self.Y.size(1)).expand_as(self.Y)
+        start = torch.where(nonzero, idx, torch.full_like(idx, self.Y.size(1))).min(dim=1).values
+        end = torch.where(nonzero, idx, torch.full_like(idx, -1)).max(dim=1).values
 
-            
+        self.bounds = torch.stack([start, end], dim=1)
+
+        self.climate_mean = mean
+        self.climate_std = std
+
+             
 
     def __len__(self):
         return len(self.features)
 
     def __getitem__(self, idx):
+        climate_data = self.climate_data[idx]
+        if self.climate_mean is not None and self.climate_std is not None:
+            climate_data = (climate_data - self.climate_mean) / (self.climate_std + 1e-6)
         return (
             self.features[idx],
             self.ranch_ids[idx],
             self.class_ids[idx],
             self.type_ids[idx],
             self.variety_ids[idx],
-            self.climate_data[idx],
-            self.Y[idx]
+            climate_data,
+            self.Y[idx],
+            self.bounds[idx],
+            idx
         )
     
     
@@ -97,4 +104,3 @@ class HarvestDataset(Dataset):
             'Y_kilos': self.Y.shape
         }
         return shapes
-    
