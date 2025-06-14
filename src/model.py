@@ -31,11 +31,6 @@ class HarvestModel(nn.Module):
             climate_hidden_dim=climate_hidden_dim
         )
 
-        self.harvest_clamp = nn.Sequential(
-            nn.Linear(self.encoder.combined_dim,harvest_clamp_hidden_dim),
-            nn.ReLU(),
-            nn.Linear(harvest_clamp_hidden_dim,2)
-        )
 
         self.kilo_gru = nn.GRU(
             input_size=3,
@@ -44,7 +39,7 @@ class HarvestModel(nn.Module):
         )
 
         self.kilo_output = nn.Sequential(
-            nn.Linear(self.encoder.combined_dim+output_dim+2, 64),
+            nn.Linear(self.encoder.combined_dim+output_dim, 64),
             nn.ReLU(),
             nn.Linear(64, output_dim)
         )
@@ -61,6 +56,6 @@ class HarvestModel(nn.Module):
         h0 = torch.zeros(1, batch_size, self.kilo_gru.hidden_size)
         out, _ = self.kilo_gru(kilo_gru_input, h0)
         kilos = out[:, -1, :]
-        clamp = torch.clamp(self.harvest_clamp(encoded),min=0,max=self.output_dim-1)
-        kilo_output = self.kilo_output(torch.cat((encoded,kilos,clamp),dim=1))
-        return kilo_output, clamp
+    
+        kilo_output = self.kilo_output(torch.cat((encoded,kilos),dim=1))
+        return kilo_output

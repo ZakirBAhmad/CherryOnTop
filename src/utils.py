@@ -8,19 +8,7 @@ from src.model import HarvestModel
 
 def create_model(train_dataset, num_epochs=30):
 
-    full_train_loader = DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False)
 
-    # Get all climate data from training set
-    features, ranch_id, class_id, type_id, variety_id, climate_data, y, bounds, _ = next(iter(full_train_loader))
-
-    # Flatten and compute mean/std on training climate data
-    climate_data_flat = climate_data.view(-1, climate_data.shape[-1])
-    climate_mean = climate_data_flat.mean(dim=0)
-    climate_std = climate_data_flat.std(dim=0)
-
-    # Assign these stats to train and val datasets
-    train_dataset.dataset.climate_mean = climate_mean  # type: ignore
-    train_dataset.dataset.climate_std = climate_std    # type: ignore
 
     # Now create DataLoaders for training and validation
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
@@ -42,6 +30,7 @@ def create_model(train_dataset, num_epochs=30):
             log_kilos = torch.log1p(y) 
             week_numbers = torch.arange(0, 20).unsqueeze(0).repeat(batch_size,1)
             inputs = torch.stack([y, log_kilos, week_numbers], dim=2)
+            looped_loss = criterion(y, y)
 
             kilo_ranges = torch.arange(4,20,4)
 
@@ -49,31 +38,15 @@ def create_model(train_dataset, num_epochs=30):
         
                 kilo_inputs = inputs[:,:kilo_range,:]
                 # Forward pass
-                outputs, clamp = model(features, ranch_id, class_id, type_id, variety_id, climate_data, kilo_inputs)
-                N = outputs.size(0)
-                T = outputs.size(1)  # Should be 20
+                outputs= model(features, ranch_id, class_id, type_id, variety_id, climate_data, kilo_inputs)
 
-                # Create time indices [0, 1, ..., 19] and expand to shape (N, 20)
-                time = torch.arange(T).unsqueeze(0).expand(N, T)
+                looped_loss += criterion(outputs, y)
+            
+            optimizer.zero_grad()
+            looped_loss.backward()
+            optimizer.step()
 
-                # Get start and end indices
-                start = clamp[:, 0].unsqueeze(1)  # Shape: (N, 1)
-                end = clamp[:, 1].unsqueeze(1)    # Shape: (N, 1)
-
-                # Create mask: 1 where i is within [start, end), 0 elsewhere
-                mask = (time >= start) & (time < end)  # Shape: (N, 20)
-
-                # Apply mask
-                masked_harvests = outputs * mask
-                loss_kilos = criterion(masked_harvests[:,kilo_range:], y[:,kilo_range:])
-                loss_clamp = criterion(clamp/20, bounds/20)
-
-                loss = loss_kilos + loss_clamp * totals
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-
-            total_loss += loss.item()
+            total_loss += looped_loss.item()
         
         avg_loss = total_loss / len(train_loader)
 
@@ -85,11 +58,17 @@ def predict_harvest(_model, _test_dataset):
     _model.eval()
     with torch.no_grad():
         test_predictions = []
+        
     
         test_loader = DataLoader(_test_dataset, batch_size=64, shuffle=False)
         for batch in test_loader:
-                features, ranch_id, class_id, type_id, variety_id, climate_data, Y_kilos = batch
-                outputs = _model(features, ranch_id, class_id, type_id, variety_id, climate_data)
+
+                features, ranch_id, class_id, type_id, variety_id, climate_data, y, bounds, _ = batch
+
+                batch_size = y.size(0)
+                inputs = torch.stack([torch.zeros(batch_size,5), torch.ones(batch_size,5), torch.arange(5).unsqueeze(0).repeat(batch_size,1)], dim=2)
+                
+                outputs = _model(features, ranch_id, class_id, type_id, variety_id, climate_data, inputs)
                 test_predictions.append(outputs)
     return torch.cat(test_predictions, dim=0).detach().numpy()
 
@@ -112,7 +91,7 @@ def train_partial_climate(_train_dataset, climate_step = 10,num_epochs=5, batch_
     for epoch in range(num_epochs):
         total_loss = np.zeros(len(climate_steps))
         for batch in train_loader:
-            features, ranch_id, class_id, type_id, variety_id, climate_data, y = batch
+            features, ranch_id, class_id, type_id, variety_id, climate_data, y, _ = batch
             seq_loss = []
             for climate_step in climate_steps:
                 
