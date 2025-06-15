@@ -72,6 +72,26 @@ def predict_harvest(_model, _test_dataset):
                 test_predictions.append(outputs)
     return torch.cat(test_predictions, dim=0).detach().numpy()
 
+def predict_gridded_harvest(_model, _test_dataset):
+    _model.eval()
+    with torch.no_grad():
+        test_predictions = np.zeros((len(_test_dataset), 20,20))
+        
+    
+        test_loader = DataLoader(_test_dataset, batch_size=64, shuffle=False)
+        for batch in test_loader:
+            features, ranch_id, class_id, type_id, variety_id, climate_data, y, bounds, idx = batch
+            batch_size = y.size(0)
+            log_kilos = torch.log1p(y) 
+            week_numbers = torch.arange(0, 20).unsqueeze(0).repeat(batch_size,1)
+            inputs = torch.stack([y, log_kilos, week_numbers], dim=2)
+            for i in range(5,20):
+                kilo_inputs = inputs[:,:i,:]
+                outputs = _model(features, ranch_id, class_id, type_id, variety_id, climate_data, kilo_inputs)       
+                test_predictions[idx,i,:] = np.concat([y[:,:i],outputs.detach().numpy()[:,i:]],axis=1)
+
+    return test_predictions
+
 def train_partial_climate(_train_dataset, climate_step = 10,num_epochs=5, batch_size=32, lr=1e-4):
     # Create DataLoader
     train_loader = DataLoader(_train_dataset, batch_size=batch_size, shuffle=True)

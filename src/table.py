@@ -21,7 +21,7 @@ class CherryTable(object):
     def __init__(self, meta: pd.DataFrame, predictions: Dict[str, np.ndarray], actuals: Optional[np.ndarray] = None, num_weeks: int = 20):
         self.meta = meta #(N,F), number of features, dataframe
         self.num_weeks = num_weeks #int
-        self.predictions = predictions #(N,num_weeks), dict of numpy arrays
+        self.predictions = predictions #(N,num_weeks,num_preds)
         if actuals is not None:
             self.actuals = actuals #(N,num_weeks), numpy array
         else:
