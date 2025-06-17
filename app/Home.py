@@ -69,7 +69,7 @@ filtered_grouped_meta = grouped_meta[
 st.write(filtered_grouped_meta)
 
 if st.button('Predict'):
-    preds = demo.create_predictions(model,test,meta,'preds')
+    preds = demo.create_predictions(model,test)
     st.session_state['preds'] = preds
     st.session_state['filtered_table'] = st.session_state['preds'].filter(ranch_list=ranch_filter,class_list=class_filter,type_list=type_filter)
 

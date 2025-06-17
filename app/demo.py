@@ -3,7 +3,7 @@ import streamlit as st
 import src.preprocessing as pre
 import pandas as pd
 import src.utils as utils
-from src.table import CherryTable
+
 import plotly.graph_objects as go
 
 @st.cache_resource
@@ -113,10 +113,9 @@ def create_model(_train_dataset,num_epochs=30):
     model = utils.create_model(_train_dataset,num_epochs=num_epochs)
     return model
 
-def create_predictions(model,test,meta,name):
+def create_predictions(model,test):
     preds = utils.predict_harvest(model,test)
-    table = CherryTable(meta,{name:preds},test.Y.detach().numpy())
-    return table
+    return preds
     
 
 

@@ -8,8 +8,6 @@ from src.model import HarvestModel
 
 def create_model(train_dataset, num_epochs=30):
 
-
-
     # Now create DataLoaders for training and validation
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 

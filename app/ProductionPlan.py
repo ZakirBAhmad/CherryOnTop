@@ -21,7 +21,7 @@ production_plan_slot = st.empty()
 
 model = demo.create_model(train)
 st.write('Created model')
-pred_table = demo.create_predictions(model,test,meta,'test')
+pred_table = demo.create_predictions(model,test)
 st.write('Created predictions')
 
-demo.display_production_plan(meta,pred_table.predictions['test'])
+demo.display_production_plan(meta,pred_table)

@@ -1,115 +1,183 @@
+import numpy as np
 import plotly.graph_objects as go
-from plotly.colors import sample_colorscale
-
-def graph_season_table(table, title, palette='Agsunset'):
-    figs = []
-    summaries = []
-    _,ranch_data,_ = table.graph_ready(True,False,False,include_actuals=True)
-    summaries.append(table.summary(True,False,False))
-    pf = ranch_data['preds_summed']
-    af = ranch_data['actuals_summed']
-    label = title + ' Ranches Predictions vs Actuals'
-    figs.append(graph_with_actuals(pf,af,label,palette))
 
 
-    _,class_data,_ = table.graph_ready(False,True,False,include_actuals=True)
-    summaries.append(table.summary(False,True,False))
-    pf = class_data['preds_summed']
-    af = class_data['actuals_summed']
-    label = title + ' Classes'
-    figs.append(graph_with_actuals(pf,af,label,palette))
+def graph_harvest(preds,actuals):
+    summed_preds = np.sum(preds, axis=0)  # Shape: (20, 51)
+    summed_actuals = np.sum(actuals, axis=0) 
 
-    _,type_data,_ = table.graph_ready(False,True,True,include_actuals=True)    
-    summaries.append(table.summary(False,True,True))
-    pf = type_data['preds_summed']
-    af = type_data['actuals_summed']
-    label = title + ' Types'
-    figs.append(graph_with_actuals(pf,af,label,palette))
+    # Determine the maximum value from summed_preds to set the y-axis limit
+    max_pred_value = np.max(summed_preds)
 
-    _,ranch_class,_ = table.graph_ready(True,True,False,include_actuals=True)
-    summaries.append(table.summary(True,True,False))
-    pf = ranch_class['preds_summed']
-    af = ranch_class['actuals_summed']
-    label = title + ' Ranches, Classes, and Types'
-    figs.append(graph_with_actuals(pf,af,label,palette))
+    # Create traces for the middle dimension of year_preds
+    traces = []
+    for i in range(summed_preds.shape[0]):  # Iterate over the 20 middle dimension
+        trace = go.Scatter(
+            x=np.arange(summed_preds.shape[1]),  # X-axis: 0 to 50
+            y=summed_preds[i, :],  # Y-axis: summed predictions for each middle dimension
+            mode='lines',
+            name=f'Preds Trace {i+1}',
+            visible=(i == 0)  # Only the first trace is visible initially
+        )
+        traces.append(trace)
 
-    _,ranch_class_type,_ = table.graph_ready(True,True,True,include_actuals=True)
-    summaries.append(table.summary(True,True,True))
-    pf = ranch_class_type['preds_summed']
-    af = ranch_class_type['actuals_summed']
-    label = title + ' Ranches, Classes, and Types'
-    figs.append(graph_with_actuals(pf,af,label,palette))
+    # Create bars for year_actuals
+    actuals_trace = go.Bar(
+        x=np.arange(summed_actuals.shape[0]),  # X-axis: 0 to 50
+        y=summed_actuals,  # Y-axis: summed actuals
+        name='Actuals',
+        opacity=0.6
+    )
 
-    return figs, summaries
+    # Add the actuals trace to the list of traces
+    traces.append(actuals_trace) 
 
-def graph_transplant_table(table, title, palette='Agsunset'):
-    figs = []
-    summaries = []
-    for key in ['summed','summed_cumsum','summed_cumprop']:
-        _,ranch_data,_ = table.graph_ready(True,False,False,include_actuals=True)
-        summaries.append(table.summary(True,False,False))
-        pf = ranch_data['preds_' + key]
-        af = ranch_data['actuals_' + key]
-        label = title + ' Ranches '
-        figs.append(graph_with_actuals(pf,af,label,palette))
+    # Create the figure
+    fig = go.Figure(data=traces)
 
+    # Create steps for the slider
+    steps = []
+    for i in range(len(traces) - 1):  # Exclude the actuals trace from the slider
+        step = dict(
+            method='update',
+            args=[{'visible': [j == i for j in range(len(traces) - 1)] + [True]}],  # Show only one preds trace and the actuals
+            label=f'Preds Trace {i+1}'
+        )
+        steps.append(step)
 
-        _,class_data,_ = table.graph_ready(False,True,False,include_actuals=True)
-        summaries.append(table.summary(False,True,False))
-        pf = class_data['preds_' + key]
-        af = class_data['actuals_' + key]
-        label = title + ' Classes ' + key
-        figs.append(graph_with_actuals(pf,af,label,palette))
+    # Create the slider
+    sliders = [dict(
+        active=0,
+        currentvalue={"prefix": "Trace: "},
+        pad={"t": summed_preds.shape[1]},
+        steps=steps
+    )]
 
-        _,type_data,_ = table.graph_ready(False,True,True,include_actuals=True)    
-        summaries.append(table.summary(False,True,True))
-        pf = type_data['preds_' + key]
-        af = type_data['actuals_' + key]
-        label = title + ' Types ' + key
-        figs.append(graph_with_actuals(pf,af,label,palette))
+    # Update layout
+    fig.update_layout(
+        title='Predictions and Actuals',
+        xaxis_title='Time Step',
+        yaxis_title='Values',
+        barmode='overlay',
+        sliders=sliders,
+        yaxis=dict(range=[0, max_pred_value])  # Set the y-axis scale based on the max of preds
+    )
 
-        _,ranch_class,_ = table.graph_ready(True,True,False,include_actuals=True)
-        summaries.append(table.summary(True,True,False))
-        pf = ranch_class['preds_' + key]
-        af = ranch_class['actuals_' + key]
-        label = title + ' Ranches, Classes, and Types ' + key
-        figs.append(graph_with_actuals(pf,af,label,palette))
-
-        _,ranch_class_type,_ = table.graph_ready(True,True,True,include_actuals=True)
-        summaries.append(table.summary(True,True,True))
-        pf = ranch_class_type['preds_' + key]
-        af = ranch_class_type['actuals_' + key]
-        label = title + ' Ranches, Classes, and Types ' + key
-        figs.append(graph_with_actuals(pf,af,label,palette))
-    return figs, summaries
-
-def graph_with_actuals(pf, af, title, palette='Agsunset'):
-    """
-    desc:
-        Create a plotly figure with predicted and actual values for regression data.
-    
-    params:
-        df: DataFrame containing predicted values with MultiIndex columns
-        af: DataFrame containing actual values with MultiIndex columns
-        title: Title for the graph
-        color_palette: Name of plotly colorscale. Defaults to 'Viridis'.
-    
-    returns:
-        Interactive figure with dropdown menu to filter traces
-    """
-
-    fig = go.Figure()
-    x_values = pf.columns
-    count = len(pf)
-    colors = sample_colorscale(palette, [i / (count -1) for i in range(count)])
-    for i, row in enumerate(pf.index):
-        label = str(row)
-        fig.add_trace(go.Scatter(x=x_values, y=pf.loc[row], name=label, marker_color=colors[i]))
-        fig.add_trace(go.Bar(x=x_values, y=af.loc[row], name=label, marker_color=colors[i], opacity=0.75))
-
-    fig.update_layout(title=title)
     return fig
 
+def graph_harvest_cumsum(preds, actuals):
+    # Sum preds by axis 0, then calculate cumulative sums by axis 1
+    summed_preds = np.sum(preds, axis=0)
+    cumsum_preds = np.cumsum(summed_preds, axis=1)
     
+    # Calculate cumulative sums for actuals
+    summed_actuals = np.sum(actuals, axis=0)
+    cumsum_actuals = np.cumsum(summed_actuals)
 
+    # Create traces
+    traces = []
+    for i in range(cumsum_preds.shape[0]):
+        trace = go.Scatter(
+            x=np.arange(cumsum_preds.shape[1]),
+            y=cumsum_preds[i, :],
+            mode='lines',
+            line=dict(dash='dash'),
+            name=f'Preds Trace {i+1}',
+            visible=(i == 0)
+        )
+        traces.append(trace)
+
+    # Add actuals trace
+    actuals_trace = go.Scatter(
+        x=np.arange(cumsum_actuals.shape[0]),
+        y=cumsum_actuals,
+        mode='lines',
+        line=dict(color='red', dash='solid'),
+        name='Actuals'
+    )
+    traces.append(actuals_trace)
+
+    # Create steps for the slider
+    steps = []
+    for i in range(len(traces) - 1):  # Exclude the actuals trace from the slider
+        step = dict(
+            method='update',
+            args=[{'visible': [j == i for j in range(len(traces) - 1)] + [True]}],  # Show only one preds trace and the actuals
+            label=f'Preds Trace {i+1}'
+        )
+        steps.append(step)
+
+    # Create the slider
+    sliders = [dict(
+        active=0,
+        currentvalue={"prefix": "Trace: "},
+        pad={"t": 20},
+        steps=steps
+    )]
+
+    # Create figure
+    fig = go.Figure(data=traces)
+
+    # Update layout
+    fig.update_layout(
+        title='Cumulative Sum of Predictions and Actuals',
+        xaxis_title='Time Step',
+        yaxis_title='Cumulative Values',
+        sliders=sliders
+    )
+
+    return fig
+
+def graph_harvest_stacked(preds,actuals,labels):
+    max_pred_value = np.max(preds)
+    num_types, num_preds, num_weeks = preds.shape
+    traces = []
+
+    for i in range(num_preds):  # Iterate over the 20 middle dimension
+        for j in range(num_types):
+            trace = go.Scatter(
+                x=np.arange(num_weeks),  # X-axis: 0 to 50
+                y=preds[j,i, :],  # Y-axis: summed predictions for each middle dimension
+                mode='lines',
+                name=f'{labels[j]} Trace {i+1}',
+                visible=(i == 0),  # Only the first trace is visible initially
+                stackgroup=f'group{i}'
+            )
+            traces.append(trace)
+    for j in range(num_types):
+        actuals_trace = go.Bar(
+                x=np.arange(num_weeks),  # X-axis: 0 to 50
+                y=actuals[j],  # Y-axis: summed actuals
+            name=f'{labels[j]} Actuals',
+            opacity=0.6
+        )
+        traces.append(actuals_trace)
+
+    fig = go.Figure(data=traces)
     
+    steps = []
+    for i in range(num_preds):  # Exclude the actuals trace from the slider
+        step = dict(
+            method='update',
+            args=[{'visible': np.repeat([j == i for j in range(num_preds)]  + [True],num_types)}],  # Show only one preds trace and the actuals
+            label=f'Preds Trace {i+1}'
+        )
+        steps.append(step)
+
+    sliders = [dict(
+        active=0,
+        currentvalue={"prefix": "Trace: "},
+        pad={"t": num_preds},
+        steps=steps,
+        len=1.0
+    )]
+
+    fig.update_layout(
+        title='Predictions and Actuals',
+        xaxis_title='Time Step',
+        yaxis_title='Values',
+        barmode='stack',
+        sliders=sliders,
+        yaxis=dict(range=[0, max_pred_value])  # Set the y-axis scale based on the max of preds
+    )
+    return fig
