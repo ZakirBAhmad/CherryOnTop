@@ -93,7 +93,8 @@ def graph_harvest_cumsum(preds, actuals):
         y=cumsum_actuals,
         mode='lines',
         line=dict(color='red', dash='solid'),
-        name='Actuals'
+        name='Actuals',
+        visible = True
     )
     traces.append(actuals_trace)
 

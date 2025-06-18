@@ -14,7 +14,7 @@ def get_indices(column,vals,indices_dict):
     return np.unique(np.concatenate([indices_dict[column][val] for val in vals]))
 
 def filter_preds(preds, actuals, column, vals,indices_dict):
-    types_idx = [indices_dict[column][t]for t in np.sort(vals)]
+    types_idx = [indices_dict[column][t]for t in vals]
     preds_filtered = np.array([preds[idx].sum(axis=0) for idx in types_idx])
     actuals_filtered = np.array([actuals[idx].sum(axis=0) for idx in types_idx])
     return preds_filtered, actuals_filtered
