@@ -130,7 +130,6 @@ def graph_harvest_cumsum(preds, actuals):
     return fig
 
 def graph_harvest_stacked(preds,actuals,labels):
-    max_pred_value = np.max(preds)
     num_types, num_preds, num_weeks = preds.shape
     traces = []
 
@@ -178,7 +177,6 @@ def graph_harvest_stacked(preds,actuals,labels):
         xaxis_title='Time Step',
         yaxis_title='Values',
         barmode='stack',
-        sliders=sliders,
-        yaxis=dict(range=[0, max_pred_value])  # Set the y-axis scale based on the max of preds
+        sliders=sliders
     )
     return fig
