@@ -7,6 +7,8 @@ class ClimateEncoder(nn.Module):
                  embedding_dim=4,
                  hidden_dim=64,
                  n_ranches=13,
+                 n_parcels=44,
+                 n_lots=75,
                  n_classes=2,
                  n_types=14,
                  n_varieties=59,
@@ -29,11 +31,19 @@ class ClimateEncoder(nn.Module):
 
         # Embedding dimensions
         self.ranch_dim = embedding_dim  # 12 ranches
+        self.parcel_dim = embedding_dim  # 12 ranches
+        self.lot_dim = embedding_dim  # 12 ranches
         self.class_dim = embedding_dim  # 2 classes
         self.type_dim = embedding_dim  # 14 types
         self.variety_dim = embedding_dim  # 38 varieties
 
         self.ranch_emb = nn.Embedding(n_ranches, self.ranch_dim)
+        self.parcel_emb = nn.Embedding(n_parcels, self.parcel_dim)
+        self.lot_emb = nn.Embedding(n_lots, self.lot_dim)
+
+        self.lot_to_parcel = nn.Linear(self.lot_dim, self.parcel_dim)
+        self.parcel_to_ranch = nn.Linear(self.parcel_dim, self.ranch_dim)
+
         self.class_emb = nn.Embedding(n_classes, self.class_dim)
         self.type_emb = nn.Embedding(n_types, self.type_dim)
         self.variety_emb = nn.Embedding(n_varieties, self.variety_dim)
@@ -45,13 +55,15 @@ class ClimateEncoder(nn.Module):
             hidden_dim +             # static features
             climate_hidden_dim +     # output from GRU
             self.ranch_dim + 
+            self.parcel_dim + 
+            self.lot_dim + 
             self.class_dim + 
             self.type_dim + 
             self.variety_dim
         )
 
 
-    def forward(self, features, ranch_id, class_id, type_id, variety_id, climate_data):
+    def forward(self, features, encoded_features, climate_data):
         """
         features: (batch_size, 5)
         climate_data: (batch_size, 100, 3)
@@ -68,8 +80,19 @@ class ClimateEncoder(nn.Module):
         # Take last timestep
         climate_out = out[:, -1, :]  # (batch_size, climate_hidden_dim)
 
+        ranch_id, parcel_id, lot_id, class_id, type_id, variety_id = encoded_features.T
+
         # Embeddings
         r_emb = self.ranch_emb(ranch_id)
+        p_emb = self.parcel_emb(parcel_id)
+        l_emb = self.lot_emb(lot_id)
+
+        l_influence_on_parcel = self.lot_to_parcel(l_emb)
+        p_emb = p_emb + l_influence_on_parcel
+
+        p_influence_on_ranch = self.parcel_to_ranch(p_emb)
+        r_emb = r_emb + p_influence_on_ranch
+
         c_emb = self.class_emb(class_id)
         t_emb = self.type_emb(type_id)
         v_emb = self.variety_emb(variety_id)
@@ -86,6 +109,8 @@ class ClimateEncoder(nn.Module):
             h_features,
             climate_out,
             r_emb,
+            p_emb,
+            l_emb,
             c_emb,
             t_emb,
             v_emb

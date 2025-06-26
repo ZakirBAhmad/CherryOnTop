@@ -44,13 +44,13 @@ class HarvestModel(nn.Module):
             nn.Linear(64, output_dim)
         )
 
-    def forward(self, features, ranch_id, class_id, type_id, variety_id, climate_data, kilo_gru_input):
+    def forward(self, features, encoded_features, climate_data, kilo_gru_input):
         """
-        features: (batch_size, 5)z
-        climate_data: (batch_size, 100, 3)
+        features: (batch_size, 5)
+        climate_data: (batch_size, 100, 10)
         kilo_gru_input: (batch_size, [5:20], 3)
         """
-        encoded = self.encoder(features, ranch_id, class_id, type_id, variety_id, climate_data)
+        encoded = self.encoder(features, encoded_features, climate_data)
         batch_size = climate_data.size(0)
         
         h0 = torch.zeros(1, batch_size, self.kilo_gru.hidden_size)

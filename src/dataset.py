@@ -32,55 +32,31 @@ class HarvestDataset(Dataset):
     """
     def __init__(self, 
                  features,         # (N, 5)
-                 ranch_ids,        # (N,)
-                 class_ids,        # (N,)
-                 type_ids,         # (N,)
-                 variety_ids,      # (N,)
+                 encoded_features,     # (N,)
                  climate_data,     # (N, 100, 3)
                  Y_kilos,         # (N, 20)
-                 mean=None,
-                 std=None
                 ):
-    
-       
 
         # Convert to tensors
         self.features = torch.tensor(features, dtype=torch.float32)
-        self.ranch_ids = torch.tensor(ranch_ids, dtype=torch.long)
-        self.class_ids = torch.tensor(class_ids, dtype=torch.long)
-        self.type_ids = torch.tensor(type_ids, dtype=torch.long)
-        self.variety_ids = torch.tensor(variety_ids, dtype=torch.long)
+        self.encoded_features = torch.tensor(encoded_features, dtype=torch.float32)
         self.climate_data = torch.tensor(climate_data, dtype=torch.float32)
         self.Y = torch.tensor(Y_kilos, dtype=torch.float32)
-        nonzero = self.Y != 0
 
-        idx = torch.arange(self.Y.size(1)).expand_as(self.Y)
-        start = torch.where(nonzero, idx, torch.full_like(idx, self.Y.size(1))).min(dim=1).values
-        end = torch.where(nonzero, idx, torch.full_like(idx, -1)).max(dim=1).values
 
-        self.bounds = torch.stack([start, end], dim=1)
-
-        self.climate_mean = mean
-        self.climate_std = std
-
-             
 
     def __len__(self):
         return len(self.features)
 
     def __getitem__(self, idx):
+
         climate_data = self.climate_data[idx]
-        if self.climate_mean is not None and self.climate_std is not None:
-            climate_data = (climate_data - self.climate_mean) / (self.climate_std + 1e-6)
+
         return (
             self.features[idx],
-            self.ranch_ids[idx],
-            self.class_ids[idx],
-            self.type_ids[idx],
-            self.variety_ids[idx],
+            self.encoded_features[idx],
             climate_data,
             self.Y[idx],
-            self.bounds[idx],
             idx
         )
     
@@ -96,10 +72,7 @@ class HarvestDataset(Dataset):
         """
         shapes = {
             'features': self.features.shape,
-            'ranch_ids': self.ranch_ids.shape,
-            'class_ids': self.class_ids.shape,
-            'type_ids': self.type_ids.shape,
-            'variety_ids': self.variety_ids.shape,
+            'encoded_features': self.encoded_features.shape,
             'climate_data': self.climate_data.shape,
             'Y_kilos': self.Y.shape
         }

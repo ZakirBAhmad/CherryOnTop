@@ -1,6 +1,6 @@
 #imports
 import streamlit as st
-import src.preprocessing as pre
+import load as pre
 import pandas as pd
 import src.utils as utils
 import torch
