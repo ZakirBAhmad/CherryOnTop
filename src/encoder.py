@@ -12,7 +12,7 @@ class ClimateEncoder(nn.Module):
                  n_classes=2,
                  n_types=14,
                  n_varieties=59,
-                 climate_input_dim=3,
+                 climate_input_dim=9,
                  climate_hidden_dim=32):
         super().__init__()
 

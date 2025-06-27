@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import numpy as np
-from src.model import HarvestModel  
+from src.model import HarvestModel
 
 
 def create_model(train_dataset, num_epochs=30):
