@@ -10,6 +10,7 @@ def train_trial(train_loader, kilo_model, schedule_model, final_model, criterion
     total_schedule_loss = 0
     total_final_loss = 0
     for batch in train_loader:
+        optimizer.zero_grad()
         features, encoded_features, climate_data, y_kilos, y_combined, schedule, _= batch
         
         # Tensors are already on the correct device from the dataset
@@ -17,18 +18,19 @@ def train_trial(train_loader, kilo_model, schedule_model, final_model, criterion
         kilo_input = y_combined[:,:num_weeks,:]
 
         kilo_outputs = kilo_model(features, encoded_features, climate_data, kilo_input)
-        schedule_outputs = schedule_model(features, encoded_features, climate_data, kilo_input,kilo_outputs)
-
         kilo_loss = criterion(kilo_outputs, y_kilos)
+        kilo_loss.backward()
+
+        schedule_outputs = schedule_model(features.detach(), encoded_features.detach(), climate_data.detach(), kilo_input.detach(),kilo_outputs.detach())
         schedule_loss = criterion(schedule_outputs, schedule)
+        schedule_loss.backward()
         
         batch_size = len(y_kilos)
         weeks = (torch.ones(batch_size, device=y_kilos.device) * num_weeks).unsqueeze(1)
-        final_outputs = final_model(weeks,kilo_outputs,schedule_outputs)
+        final_outputs = final_model(weeks,kilo_outputs.detach(),schedule_outputs.detach())
         final_loss = criterion(final_outputs, y_kilos)
-
-        optimizer.zero_grad()
-        (kilo_loss + schedule_loss + final_loss).backward()
+        final_loss.backward()
+        
         optimizer.step()
 
         total_kilo_loss += kilo_loss.item()
@@ -132,7 +134,7 @@ def run_trial(train_loader, val_loader, kilo_model, schedule_model, final_model,
         
         scheduler.step()
         if epoch % 10 == 0:
-            print('Epoch', epoch, 'completed')
+            print(f'Epoch {epoch} completed. Total Trigger Times: Kilo - {total_kilo_trigger_times}, Schedule - {total_schedule_trigger_times}, Final - {total_final_trigger_times}')
 
         if epoch % 50 == 0:
             torch.save(kilo_model.state_dict(), f'{save_destination}/kilo_model_epoch_{epoch}.pth')
@@ -150,11 +152,13 @@ def run_trial(train_loader, val_loader, kilo_model, schedule_model, final_model,
             best_kilo_model = kilo_model.state_dict()
             best_kilo_epoch = epoch
             trigger_times_kilo = 0
+            trigger_times_schedule = 0
+            trigger_times_final = 0
         else:
             trigger_times_kilo += 1
             total_kilo_trigger_times += 1
 
-        if trigger_times_kilo >= patience and kilo_trigger_epoch == -1:
+        if trigger_times_kilo >= patience and epoch > 100 and kilo_trigger_epoch == -1:
             kilo_trigger_epoch = epoch
         
         if avg_val_loss_schedule < best_val_loss_schedule:
@@ -162,11 +166,12 @@ def run_trial(train_loader, val_loader, kilo_model, schedule_model, final_model,
             best_schedule_models = (kilo_model.state_dict(),schedule_model.state_dict())
             best_schedule_epoch = epoch
             trigger_times_schedule = 0
+            trigger_times_final = 0
         else:
             trigger_times_schedule += 1
             total_schedule_trigger_times += 1
 
-        if trigger_times_schedule >= patience and schedule_trigger_epoch == -1:
+        if trigger_times_schedule >= patience and epoch > 200 and schedule_trigger_epoch == -1:
             schedule_trigger_epoch = epoch
 
         if avg_val_loss_final < best_val_loss_final:
@@ -178,7 +183,7 @@ def run_trial(train_loader, val_loader, kilo_model, schedule_model, final_model,
             trigger_times_final += 1
             total_final_trigger_times += 1
         
-        if trigger_times_final >= patience:
+        if trigger_times_final >= patience and epoch > 300:
             print(f'Final triggered at epoch {epoch}, overfitting detected')
             break
 
