@@ -51,7 +51,10 @@ class HarvestDataset(Dataset):
         self.encoded_features = torch.tensor(encoded_features, dtype=torch.long, device=self.device)
         self.climate_data = torch.tensor(climate_data, dtype=torch.float32, device=self.device)
         self.Y_kilos = torch.tensor(Y_kilos, dtype=torch.float32, device=self.device)
+        self.Y_log_kilos = torch.log1p(self.Y_kilos)
+        self.week_numbers = torch.arange(0, Y_kilos.shape[1], device=self.device).unsqueeze(0).repeat(Y_kilos.shape[0],1)
 
+        self.Y_combined = torch.stack([self.Y_kilos, self.Y_log_kilos, self.week_numbers], dim=2)
         self.Y_Schedule = torch.tensor(Y_schedule, dtype=torch.float32, device=self.device)
 
     def __len__(self):
@@ -65,6 +68,7 @@ class HarvestDataset(Dataset):
             self.encoded_features[idx],
             climate_data,
             self.Y_kilos[idx],
+            self.Y_combined[idx],
             self.Y_Schedule[idx],
             idx
         )

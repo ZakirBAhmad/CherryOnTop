@@ -4,7 +4,7 @@ import torch.nn as nn
 class ClimateEncoder(nn.Module):
     def __init__(self,
                  input_dim=5,
-                 embedding_dim=4,
+                 embedding_dim=12,
                  hidden_dim=64,
                  n_ranches=13,
                  n_parcels=44,
@@ -13,7 +13,7 @@ class ClimateEncoder(nn.Module):
                  n_types=14,
                  n_varieties=59,
                  climate_input_dim=9,
-                 climate_hidden_dim=32):
+                 climate_hidden_dim=64):
         super().__init__()
 
         # Feature processing

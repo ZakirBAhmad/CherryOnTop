@@ -1,140 +1,225 @@
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader
 import numpy as np
-from src.model import HarvestModel
+from torch.utils.data import DataLoader
+from src.model import HarvestScheduleModel, KiloModel, FinalModel
+from src.encoder import ClimateEncoder
+import torch.nn as nn
 
+def train_trial(train_loader, kilo_model, schedule_model, final_model, criterion, optimizer, num_weeks):
+    total_kilo_loss = 0
+    total_schedule_loss = 0
+    total_final_loss = 0
+    for batch in train_loader:
+        features, encoded_features, climate_data, y_kilos, y_combined, schedule, _= batch
+        
+        # Tensors are already on the correct device from the dataset
+        climate_data = climate_data[:,:num_weeks * 7,:]
+        kilo_input = y_combined[:,:num_weeks,:]
 
-def create_model(train_dataset, num_epochs=30):
+        kilo_outputs = kilo_model(features, encoded_features, climate_data, kilo_input)
+        schedule_outputs = schedule_model(features, encoded_features, climate_data, kilo_input,kilo_outputs)
 
-    # Now create DataLoaders for training and validation
+        kilo_loss = criterion(kilo_outputs, y_kilos)
+        schedule_loss = criterion(schedule_outputs, schedule)
+        
+        batch_size = len(y_kilos)
+        weeks = (torch.ones(batch_size, device=y_kilos.device) * num_weeks).unsqueeze(1)
+        final_outputs = final_model(weeks,kilo_outputs,schedule_outputs)
+        final_loss = criterion(final_outputs, y_kilos)
+
+        optimizer.zero_grad()
+        (kilo_loss + schedule_loss + final_loss).backward()
+        optimizer.step()
+
+        total_kilo_loss += kilo_loss.item()
+        total_schedule_loss += schedule_loss.item()
+        total_final_loss += final_loss.item()
+
+    avg_kilo_loss = total_kilo_loss / len(train_loader)
+    avg_schedule_loss = total_schedule_loss / len(train_loader)
+    avg_final_loss = total_final_loss / len(train_loader)
+    return avg_kilo_loss, avg_schedule_loss, avg_final_loss
+
+def evaluate(val_loader, kilo_model, schedule_model, final_model, criterion, num_weeks):
+    total_kilo_loss = 0
+    total_schedule_loss = 0
+    total_final_loss = 0
+
+    with torch.no_grad():
+        for batch in val_loader:
+            features, encoded_features, climate_data, y_kilos, y_combined, schedule, _= batch
+
+            climate_data = climate_data[:,:num_weeks * 7,:]
+            kilo_input = y_combined[:,:num_weeks,:]
+
+            kilo_outputs = kilo_model(features, encoded_features, climate_data, kilo_input)
+            schedule_outputs = schedule_model(features, encoded_features, climate_data, kilo_input, kilo_outputs)
+
+            batch_size = len(y_kilos)
+            weeks = (torch.ones(batch_size, device=y_kilos.device) * num_weeks).unsqueeze(1)
+            final_outputs = final_model(weeks, kilo_outputs, schedule_outputs)
+
+    
+            kilo_loss = criterion(kilo_outputs, y_kilos)
+            schedule_loss = criterion(schedule_outputs, schedule)
+            final_loss = criterion(final_outputs, y_kilos)
+
+            total_kilo_loss += kilo_loss.item()
+            total_schedule_loss += schedule_loss.item()
+            total_final_loss += final_loss.item()
+
+    avg_kilo_loss = total_kilo_loss / len(val_loader)
+    avg_schedule_loss = total_schedule_loss / len(val_loader)
+    avg_final_loss = total_final_loss / len(val_loader)
+    return avg_kilo_loss, avg_schedule_loss, avg_final_loss
+
+def run_trial(train_loader, val_loader, kilo_model, schedule_model, final_model, criterion, optimizer, scheduler, num_epochs, save_destination):
+    
+    patience = 10
+    
+    trigger_times_kilo = 0
+    total_kilo_trigger_times = 0
+    trigger_times_schedule = 0
+    total_schedule_trigger_times = 0
+    trigger_times_final = 0
+    total_final_trigger_times = 0
+
+    best_val_loss_kilo = float('inf')
+    best_val_loss_schedule = float('inf')
+    best_val_loss_final = float('inf')
+
+    losses = np.zeros((num_epochs,13,3))
+
+    best_kilo_model = kilo_model.state_dict()
+    kilo_trigger_epoch = -1
+    best_kilo_epoch = -1
+
+    best_schedule_models = (kilo_model.state_dict(),schedule_model.state_dict())
+    schedule_trigger_epoch = -1
+    best_schedule_epoch = -1
+
+    best_final_models = (kilo_model.state_dict(),schedule_model.state_dict(),final_model.state_dict())
+    best_final_epoch = -1
+
+    for epoch in range(num_epochs):
+        kilo_model.train()
+        schedule_model.train()
+        final_model.train()
+        # Phase 1 - Transplant_Date
+        losses[epoch,0,:] = train_trial(train_loader, kilo_model, schedule_model, final_model, criterion, optimizer, 1)
+        
+        # Phase 2 - End Climate
+        week_num = np.random.randint(9,13)
+        losses[epoch,1,:] = train_trial(train_loader, kilo_model, schedule_model, final_model, criterion, optimizer, week_num)
+
+        # Phase 3 - Curve Adjustment
+        sample = np.random.randint(14,25,5)
+        for i, week in enumerate(sample):
+            losses[epoch,2+i,:] = train_trial(train_loader, kilo_model, schedule_model, final_model, criterion, optimizer, week)
+
+        # Phase 4 - Validation
+        kilo_model.eval()
+        schedule_model.eval()
+        final_model.eval()
+        
+        losses[epoch,7,:] = evaluate(val_loader, kilo_model, schedule_model, final_model, criterion, 1)
+        losses[epoch,8,:] = evaluate(val_loader, kilo_model, schedule_model, final_model, criterion, 6)
+        losses[epoch,9,:] = evaluate(val_loader, kilo_model, schedule_model, final_model, criterion, 11)
+        losses[epoch,10,:] = evaluate(val_loader, kilo_model, schedule_model, final_model, criterion, 16)
+        losses[epoch,11,:] = evaluate(val_loader, kilo_model, schedule_model, final_model, criterion, 21)
+        losses[epoch,12,:] = evaluate(val_loader, kilo_model, schedule_model, final_model, criterion, 26)
+
+        
+        scheduler.step()
+        if epoch % 10 == 0:
+            print('Epoch', epoch, 'completed')
+
+        if epoch % 50 == 0:
+            torch.save(kilo_model.state_dict(), f'{save_destination}/kilo_model_epoch_{epoch}.pth')
+            torch.save(schedule_model.state_dict(), f'{save_destination}/schedule_model_epoch_{epoch}.pth')
+            torch.save(final_model.state_dict(), f'{save_destination}/final_model_epoch_{epoch}.pth')
+            print('Epoch', epoch, 'completed, models saved')
+
+        avg_val_loss_kilo = np.mean(losses[epoch, 7:, 0])
+        avg_val_loss_schedule = np.mean(losses[epoch, 7:, 1])
+        avg_val_loss_final = np.mean(losses[epoch, 7:, 2])
+
+        # Check for improvement
+        if avg_val_loss_kilo < best_val_loss_kilo:
+            best_val_loss_kilo = avg_val_loss_kilo
+            best_kilo_model = kilo_model.state_dict()
+            best_kilo_epoch = epoch
+            trigger_times_kilo = 0
+        else:
+            trigger_times_kilo += 1
+            total_kilo_trigger_times += 1
+
+        if trigger_times_kilo >= patience and kilo_trigger_epoch == -1:
+            kilo_trigger_epoch = epoch
+        
+        if avg_val_loss_schedule < best_val_loss_schedule:
+            best_val_loss_schedule = avg_val_loss_schedule
+            best_schedule_models = (kilo_model.state_dict(),schedule_model.state_dict())
+            best_schedule_epoch = epoch
+            trigger_times_schedule = 0
+        else:
+            trigger_times_schedule += 1
+            total_schedule_trigger_times += 1
+
+        if trigger_times_schedule >= patience and schedule_trigger_epoch == -1:
+            schedule_trigger_epoch = epoch
+
+        if avg_val_loss_final < best_val_loss_final:
+            best_val_loss_final = avg_val_loss_final
+            best_final_models = (kilo_model.state_dict(),schedule_model.state_dict(),final_model.state_dict())
+            best_final_epoch = epoch
+            trigger_times_final = 0
+        else:
+            trigger_times_final += 1
+            total_final_trigger_times += 1
+        
+        if trigger_times_final >= patience:
+            print(f'Final triggered at epoch {epoch}, overfitting detected')
+            break
+
+    print(f'Kilo triggered at epoch {kilo_trigger_epoch} and best kilo model saved at epoch {best_kilo_epoch}. Overall, it triggered {total_kilo_trigger_times} times')
+    print(f'Schedule triggered at epoch {schedule_trigger_epoch} and best schedule model saved at epoch {best_schedule_epoch}. Overall, it triggered {total_schedule_trigger_times} times')
+    print(f'Final triggered at epoch {best_final_epoch}. Overall, it triggered {total_final_trigger_times} times')
+
+    return losses, best_kilo_model, best_schedule_models, best_final_models
+
+def test_model(train_dataset, test_dataset, num_epochs, device, save_destination):
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    val_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
+    encoder_schedule = ClimateEncoder().to(device)
+    encoder_kilo = ClimateEncoder().to(device)
 
-    model = HarvestModel()
+    kilo_model = KiloModel(encoder_kilo).to(device)
+    schedule_model = HarvestScheduleModel(encoder_schedule).to(device)
+    final_model = FinalModel().to(device)
 
-    # Loss and optimizer
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
-    model.train()
 
-    for epoch in range(num_epochs):
-        total_loss = 0
-        for batch in train_loader:
-            features, ranch_id, class_id, type_id, variety_id, climate_data, y, bounds, _ = batch
-            totals = y.sum().to(dtype=torch.float32)
-            bounds = bounds.to(dtype=torch.float32)
-            batch_size = y.size(0)
-            log_kilos = torch.log1p(y) 
-            week_numbers = torch.arange(0, 20).unsqueeze(0).repeat(batch_size,1)
-            inputs = torch.stack([y, log_kilos, week_numbers], dim=2)
-            looped_loss = criterion(y, y)
-
-            kilo_ranges = torch.arange(4,20,4)
-
-            for kilo_range in kilo_ranges:
+    optimizer = torch.optim.Adam([
+        {"params": kilo_model.parameters(), "lr": 5e-4},
+        {"params": schedule_model.parameters(), "lr": 5e-4},
+        {"params": final_model.parameters(), "lr": 1e-3}
         
-                kilo_inputs = inputs[:,:kilo_range,:]
-                # Forward pass
-                outputs= model(features, ranch_id, class_id, type_id, variety_id, climate_data, kilo_inputs)
+    ])
 
-                looped_loss += criterion(outputs, y)
-            
-            optimizer.zero_grad()
-            looped_loss.backward()
-            optimizer.step()
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.9)
 
-            total_loss += looped_loss.item()
-        
-        avg_loss = total_loss / len(train_loader)
+    report, kilo_state, schedule_models, final_models = run_trial(
+        train_loader, 
+        val_loader,
+        kilo_model, 
+        schedule_model, 
+        final_model, 
+        criterion, 
+        optimizer, 
+        scheduler, 
+        num_epochs,
+        save_destination
+        )
 
-        print(f"Epoch [{epoch+1}/{200}], Loss: {avg_loss:.4f}")
-    
-    return model
-
-def predict_harvest(_model, _test_dataset):
-    _model.eval()
-    with torch.no_grad():
-        test_predictions = []
-        
-    
-        test_loader = DataLoader(_test_dataset, batch_size=64, shuffle=False)
-        for batch in test_loader:
-
-                features, ranch_id, class_id, type_id, variety_id, climate_data, y, bounds, _ = batch
-
-                batch_size = y.size(0)
-                inputs = torch.stack([torch.zeros(batch_size,5), torch.ones(batch_size,5), torch.arange(5).unsqueeze(0).repeat(batch_size,1)], dim=2)
-                
-                outputs = _model(features, ranch_id, class_id, type_id, variety_id, climate_data, inputs)
-                test_predictions.append(outputs)
-    return torch.cat(test_predictions, dim=0).detach().numpy()
-
-def predict_gridded_harvest(_model, _test_dataset):
-    _model.eval()
-    with torch.no_grad():
-        test_predictions = np.zeros((len(_test_dataset), 20,20))
-        
-    
-        test_loader = DataLoader(_test_dataset, batch_size=64, shuffle=False)
-        for batch in test_loader:
-            features, ranch_id, class_id, type_id, variety_id, climate_data, y, bounds, idx = batch
-            batch_size = y.size(0)
-            log_kilos = torch.log1p(y) 
-            week_numbers = torch.arange(0, 20).unsqueeze(0).repeat(batch_size,1)
-            inputs = torch.stack([y, log_kilos, week_numbers], dim=2)
-            for i in range(5,20):
-                kilo_inputs = inputs[:,:i,:]
-                outputs = _model(features, ranch_id, class_id, type_id, variety_id, climate_data, kilo_inputs)       
-                test_predictions[idx,i,:] = np.concat([y[:,:i],outputs.detach().numpy()[:,i:]],axis=1)
-
-    return test_predictions
-
-def train_partial_climate(_train_dataset, climate_step = 10,num_epochs=5, batch_size=32, lr=1e-4):
-    # Create DataLoader
-    train_loader = DataLoader(_train_dataset, batch_size=batch_size, shuffle=True)
-
-    # Initialize Model
-    model = HarvestModel()
-
-    # Loss and optimizer
-    criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
-
-    seq_len = _train_dataset.get_shapes()['climate_data'][1]
-    climate_steps = torch.arange(climate_step,seq_len + 1,climate_step)
-
-    model.train()
-
-    for epoch in range(num_epochs):
-        total_loss = np.zeros(len(climate_steps))
-        for batch in train_loader:
-            features, ranch_id, class_id, type_id, variety_id, climate_data, y, _ = batch
-            seq_loss = []
-            for climate_step in climate_steps:
-                
-                climate_data_step = climate_data[:, :climate_step, :]
-
-                # Forward pass
-                outputs = model(features, ranch_id, class_id, type_id, variety_id, climate_data_step)
-
-
-                loss = criterion(outputs, y)
-
-                # Backward and optimize
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-
-                seq_loss.append(loss.item())
-
-            
-            total_loss += seq_loss
-
-        avg_start_loss = total_loss[0] / len(train_loader)
-        avg_end_loss = total_loss[-1] / len(train_loader)
-        avg_loss = str(total_loss / len(train_loader))
-        min_loss = np.argmin(total_loss)
-        print(f"Epoch [{epoch+1}/{num_epochs}], Start Loss: {avg_start_loss:.4f}, End Loss: {avg_end_loss:.4f}, Avg Loss: {avg_loss}, Min Loss: {min_loss:.4f}")
-
-    return model
+    return report, kilo_state, schedule_models, final_models
