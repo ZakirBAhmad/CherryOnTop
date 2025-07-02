@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
-from src.model import HarvestScheduleModel, KiloModel, FinalModel
+from src.model import ScheduleModel, KiloModel, FinalModel
 from src.encoder import ClimateEncoder
 import torch.nn as nn
 
@@ -200,7 +200,7 @@ def test_model(train_dataset, test_dataset, num_epochs, device, save_destination
     encoder_kilo = ClimateEncoder().to(device)
 
     kilo_model = KiloModel(encoder_kilo).to(device)
-    schedule_model = HarvestScheduleModel(encoder_schedule).to(device)
+    schedule_model = ScheduleModel(encoder_schedule).to(device)
     final_model = FinalModel().to(device)
 
     criterion = nn.MSELoss()

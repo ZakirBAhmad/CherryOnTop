@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
+from torch.nn.utils import weight_norm
 
 class ClimateEncoder(nn.Module):
     def __init__(self,
                  input_dim=5,
                  embedding_dim=12,
-                 hidden_dim=64,
+                 hidden_dim=32,
                  n_ranches=13,
                  n_parcels=44,
                  n_lots=75,
@@ -13,19 +14,21 @@ class ClimateEncoder(nn.Module):
                  n_types=14,
                  n_varieties=59,
                  climate_input_dim=9,
-                 climate_hidden_dim=64):
+                 climate_hidden_dim=32):
         super().__init__()
 
         # Feature processing
         self.feature_encoder = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
+            weight_norm(nn.Linear(input_dim, hidden_dim)),
             nn.ReLU()
         )
 
         # Climate GRU
         self.climate_gru = nn.GRU(
-            input_size=climate_input_dim,      # 3 features: temp_max, temp_min, precipitation
-            hidden_size=climate_hidden_dim,     # You choose (maybe 32)
+            input_size=climate_input_dim, 
+            hidden_size=climate_hidden_dim,
+            num_layers=2,
+            dropout=0.2,
             batch_first=True
         )
 
@@ -41,15 +44,15 @@ class ClimateEncoder(nn.Module):
         self.parcel_emb = nn.Embedding(n_parcels, self.parcel_dim)
         self.lot_emb = nn.Embedding(n_lots, self.lot_dim)
 
-        self.lot_to_parcel = nn.Linear(self.lot_dim, self.parcel_dim)
-        self.parcel_to_ranch = nn.Linear(self.parcel_dim, self.ranch_dim)
+        self.lot_to_parcel = weight_norm(nn.Linear(self.lot_dim, self.parcel_dim))
+        self.parcel_to_ranch = weight_norm(nn.Linear(self.parcel_dim, self.ranch_dim))
 
         self.class_emb = nn.Embedding(n_classes, self.class_dim)
         self.type_emb = nn.Embedding(n_types, self.type_dim)
         self.variety_emb = nn.Embedding(n_varieties, self.variety_dim)
 
-        self.type_to_class = nn.Linear(self.type_dim, self.class_dim)
-        self.variety_to_type = nn.Linear(self.variety_dim, self.type_dim)
+        self.type_to_class = weight_norm(nn.Linear(self.type_dim, self.class_dim))
+        self.variety_to_type = weight_norm(nn.Linear(self.variety_dim, self.type_dim))
 
         self.combined_dim = (
             hidden_dim +             # static features
@@ -74,7 +77,7 @@ class ClimateEncoder(nn.Module):
 
         # Climate GRU
         batch_size = climate_data.size(0)
-        h0 = torch.zeros(1, batch_size, self.climate_gru.hidden_size).to(climate_data.device)
+        h0 = torch.zeros(2, batch_size, self.climate_gru.hidden_size).to(climate_data.device)
         out, _ = self.climate_gru(climate_data, h0)  # out: (batch_size, seq_len, hidden_size)
 
         # Take last timestep

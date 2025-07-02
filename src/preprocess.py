@@ -7,29 +7,29 @@ from scipy.stats import zscore
 import json
 from sklearn.preprocessing import RobustScaler
 
-def create_files(folder_path):
+def create_files(folder_path,normalize=True):
 
     tomato_path = folder_path + 'raw/tomato/'
     climate_path = folder_path + 'raw/climate/'
     
     meta, y = create_meta_y(tomato_path)
-    df_normalized, columns_to_normalize, scaler = create_df_normalized(climate_path)
+    df, columns, scaler = create_df(climate_path,normalize)
 
-    meta['ClimateSeries'] = meta.apply(get_climate_series, axis=1, df_normalized=df_normalized, columns_to_normalize=columns_to_normalize)
+    meta['ClimateSeries'] = meta.apply(get_climate_series, axis=1, df=df, columns=columns)
 
     schedule = get_schedule(y)
 
     filtered_meta, filtered_y, filtered_schedule = filter_outliers(meta, y, schedule)
 
-    return filtered_meta, filtered_y, df_normalized, filtered_schedule, scaler
+    return filtered_meta, filtered_y, df, filtered_schedule, scaler
 
-def get_climate_series(row,df_normalized,columns_to_normalize):
+def get_climate_series(row,df,columns):
     """returns the climate series from df_normalized for 100 days after transplant date. returns values from columns to be normalized"""
     transplant_date = row['TransplantDate']
     location = row['ProducerCode']
     
     # Filter the dataframe for the specific location
-    location_data = df_normalized[df_normalized['Location'] == location]
+    location_data = df[df['Location'] == location]
     
     # Convert transplant_date to datetime
     transplant_date = pd.to_datetime(transplant_date)
@@ -39,7 +39,7 @@ def get_climate_series(row,df_normalized,columns_to_normalize):
                                    (location_data['date'] < transplant_date + pd.Timedelta(days=100))]
     
     # Return the values from columns to be normalized
-    return climate_series[columns_to_normalize].values.tolist()
+    return climate_series[columns].values.tolist()
 
 def filter_outliers(meta, y,schedule,z_bad = 3, uncertainty_bad = 1.5):
     outliers = meta.copy()
@@ -103,7 +103,7 @@ def get_schedule(y):
 
     return schedule
 
-def create_df_normalized(climate_path):
+def create_df(climate_path,normalize=True):
     climate_file_names = os.listdir(climate_path)
 
     dfs = []
@@ -115,8 +115,7 @@ def create_df_normalized(climate_path):
 
     df = pd.concat(dfs).drop(columns=['Unnamed: 0','0','weather_code'])
     df.date = pd.to_datetime(df.date).dt.tz_localize(None)
-
-    columns_to_normalize = [
+    columns = [
         'temperature_2m_max',
         'temperature_2m_min',
         'precipitation_sum',
@@ -127,11 +126,13 @@ def create_df_normalized(climate_path):
         'precipitation_hours',
         'wind_speed_10m_max'
     ]
-    
-    scaler = RobustScaler()
-    df[columns_to_normalize] = scaler.fit_transform(df[columns_to_normalize])
+    if normalize:
+        scaler = RobustScaler()
+        df[columns] = scaler.fit_transform(df[columns])
+    else:
+        scaler = None
 
-    return df, columns_to_normalize, scaler
+    return df, columns, scaler
 
 def create_meta_y(tomato_path):
     production_reports = []
@@ -150,6 +151,7 @@ def create_meta_y(tomato_path):
     df = production_reports[['TransplantDate','ProducerCode','Ha','DateRecieved','WeekRecieved','Kilos','Class','Type','Variety','Parcel','Lot','Brix']]
     df['Type'] = df['Type'].str.rstrip()
     df['Parcel'] = df['Parcel'].str.upper()
+    df['Parcel'] = df['Parcel'].str.replace(' ','')
     df['Type'] = df['Type'].str.title()
     df['Variety'] = df['Variety'].str.title()
     df['TransplantDate'] = pd.to_datetime(df['TransplantDate'], dayfirst=True)
