@@ -1,20 +1,20 @@
 #imports
 import streamlit as st
-import load as pre
+import src.load as load
 import pandas as pd
 import src.utils as utils
 import torch
-from src.model import HarvestModel
+from src.model import KiloModel,ScheduleModel
 import src.table as table
 import src.graphs as graphs
+from src.encoder import ClimateEncoder
 import plotly.graph_objects as go
 import numpy as np
 
 @st.cache_resource
 def initialize_data(path_meta, path_y, path_mapping_dict):
-    train, test, mappings, meta = pre.separate_year(path_meta, path_y, path_mapping_dict)
-    meta = pre.decode(meta,mappings).reset_index(drop=True)
-    return train, test, mappings, meta
+    train, test, mappings, reverse_mappings, meta  = load.separate_prop('../data/processed/')
+    return train, test, mappings, reverse_mappings, meta
 
 def display_production_plan(plan):
     st.write('Production Plan:')
@@ -108,14 +108,21 @@ def display_production_plan(plan):
     st.dataframe(ranch_pivot,use_container_width=True)
 
 @st.cache_resource
-def create_model(_model_path):
-    model = HarvestModel()
-    model.load_state_dict(torch.load(_model_path))
-    model.eval()
-    return model
+def create_models(_kilo_model_path, _schedule_model_path, _final_model_path):
+    kilo_encoder = ClimateEncoder()
+    schedule_encoder = ClimateEncoder()
+    kilo_model = KiloModel(kilo_encoder)
+    kilo_model.load_state_dict(torch.load(_kilo_model_path))
+    kilo_model.eval()
 
-def create_predictions(model,test):
-    preds = utils.predict_gridded_harvest(model,test)
+    schedule_model = ScheduleModel(schedule_encoder)
+    schedule_model.load_state_dict(torch.load(_schedule_model_path))
+    schedule_model.eval()
+
+    return kilo_model, schedule_model
+
+def create_predictions(kilo_model, schedule_model, test):
+    preds = utils.predict_gridded_harvest(kilo_model,schedule_model,test)
     actuals = test.Y.detach().numpy()
     return preds, actuals
     

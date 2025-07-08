@@ -1,61 +1,27 @@
-#imports
 import torch
 from torch.utils.data import Dataset
-from typing import Union
-
 
 class HarvestDataset(Dataset):
-    """
-    A PyTorch Dataset class for handling harvest data with automatic device placement.
 
-    This dataset manages features and various categorical IDs (ranch, class, type, variety) 
-    along with target variables for kilos measurements. All tensors are automatically 
-    placed on the specified device.
 
-    Parameters
-    ----------
-    features : numpy.ndarray, shape (N, 5)
-        Static features for N samples
-    encoded_features : numpy.ndarray, shape (N, 6)
-        Encoded categorical features
-    climate_data : numpy.ndarray, shape (N, 100, 9)
-        Climate time series data
-    Y_kilos : numpy.ndarray, shape (N, 20)
-        Target kilos measurements for 20 timesteps
-    device : torch.device or str, optional
-        Device to place tensors on ('cpu', 'cuda', or torch.device object)
-        Defaults to 'cpu'
-
-    Returns
-    -------
-    tuple
-        Contains tensors for features, IDs and targets when indexed
-    """
     def __init__(self, 
-                 features,         # (N, 5)
-                 encoded_features, # (N, 6)
-                 climate_data,     # (N, 100, 9)
-                 Y_kilos,         # (N, 20)
-                 Y_schedule,      # (N, 3)
-                 device = 'cpu'     # Device for tensor placement
+                 features,
+                 encoded_features,
+                 climate_data,
+                 yield_dist,       
+                 kilo_dist,
+                 yield_log,       
+                 schedule
                 ):
 
-        # Handle device specification
-        if isinstance(device, str):
-            self.device = torch.device(device)
-        else:
-            self.device = device
+        self.features = torch.tensor(features, dtype=torch.float32)
+        self.encoded_features = torch.tensor(encoded_features, dtype=torch.long)
+        self.climate_data = torch.tensor(climate_data, dtype=torch.float32)
+        self.yield_dist = torch.tensor(yield_dist, dtype=torch.float32).unsqueeze(2)
+        self.kilo_dist = torch.tensor(kilo_dist, dtype=torch.float32).unsqueeze(2)
 
-        # Convert to tensors and move to specified device
-        self.features = torch.tensor(features, dtype=torch.float32, device=self.device)
-        self.encoded_features = torch.tensor(encoded_features, dtype=torch.long, device=self.device)
-        self.climate_data = torch.tensor(climate_data, dtype=torch.float32, device=self.device)
-        self.Y_kilos = torch.tensor(Y_kilos, dtype=torch.float32, device=self.device)
-        self.Y_log_kilos = torch.log1p(self.Y_kilos)
-        self.week_numbers = torch.arange(0, Y_kilos.shape[1], device=self.device).unsqueeze(0).repeat(Y_kilos.shape[0],1)
-
-        self.Y_combined = torch.stack([self.Y_kilos, self.Y_log_kilos, self.week_numbers], dim=2)
-        self.Y_Schedule = torch.tensor(Y_schedule, dtype=torch.float32, device=self.device)
+        self.Y_yield_log = torch.tensor(yield_log, dtype=torch.float32)
+        self.Y_schedule = torch.tensor(schedule, dtype=torch.float32)
 
     def __len__(self):
         return len(self.features)
@@ -67,62 +33,22 @@ class HarvestDataset(Dataset):
             self.features[idx],
             self.encoded_features[idx],
             climate_data,
-            self.Y_kilos[idx],
-            self.Y_combined[idx],
-            self.Y_Schedule[idx],
+            self.yield_dist[idx],
+            self.kilo_dist[idx],
+            self.Y_yield_log[idx],
+            self.Y_schedule[idx],
             idx
         )
     
-    def to(self, device):
-        """
-        Move all tensors to the specified device.
-        
-        Parameters
-        ----------
-        device : torch.device or str
-            Target device
-            
-        Returns
-        -------
-        HarvestDataset
-            Returns self for method chaining
-        """
-        if isinstance(device, str):
-            device = torch.device(device)
-            
-        self.device = device
-        self.features = self.features.to(device)
-        self.encoded_features = self.encoded_features.to(device)
-        self.climate_data = self.climate_data.to(device)
-        self.Y_kilos = self.Y_kilos.to(device)
-        self.Y_Schedule = self.Y_Schedule.to(device)
-        return self
-    
     def get_shapes(self):
-        """
-        Returns a dictionary containing the shapes of all data tensors
-        
-        Returns
-        -------
-        dict
-            Dictionary with tensor names as keys and their shapes as values
-        """
+
         shapes = {
             'features': self.features.shape,
             'encoded_features': self.encoded_features.shape,
             'climate_data': self.climate_data.shape,
-            'Y_kilos': self.Y_kilos.shape,
-            'Y_schedule': self.Y_Schedule.shape
+            'yield_dist': self.yield_dist.shape,
+            'kilo_dist': self.kilo_dist.shape,
+            'yield_log': self.Y_yield_log.shape,
+            'schedule': self.Y_schedule.shape
         }
         return shapes
-    
-    def get_device(self):
-        """
-        Returns the device where tensors are stored
-        
-        Returns
-        -------
-        torch.device
-            Current device of the dataset tensors
-        """
-        return self.device

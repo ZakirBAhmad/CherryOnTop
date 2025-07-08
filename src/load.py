@@ -26,7 +26,7 @@ def load_data(folder_path):
     reverse_mappings = json.load(open(folder_path + 'reverse_mappings.json'))
     return meta, y, schedule, mapping_dict, reverse_mappings
 
-def separate_year(folder_path, year=2024, device = 'cpu'):
+def separate_year(folder_path, year=2024):
     """
     Split data into training and test sets based on year.
     
@@ -47,12 +47,12 @@ def separate_year(folder_path, year=2024, device = 'cpu'):
     train_y = y[y.index.isin(train_meta.index)]
     test_y = y[y.index.isin(test_meta.index)]
 
-    train_dataset = make_dataset(train_meta, train_y, schedule, mapping_dict, device=device)
-    test_dataset = make_dataset(test_meta, test_y, schedule, mapping_dict, device=device)
+    train_dataset = make_dataset(train_meta, train_y, schedule, mapping_dict)
+    test_dataset = make_dataset(test_meta, test_y, schedule, mapping_dict)
     
     return train_dataset, test_dataset, mapping_dict, reverse_mappings, test_meta
 
-def separate_prop(folder_path, p=0.8, device = 'cpu'):
+def separate_prop(folder_path, p=0.8):
     """
     Split data into training and test sets based on proportion.
     
@@ -74,44 +74,35 @@ def separate_prop(folder_path, p=0.8, device = 'cpu'):
     train_y = y[y.index.isin(train_meta.index)]
     test_y = y[y.index.isin(test_meta.index)]
 
-    train_dataset = make_dataset(train_meta, train_y, train_schedule, mapping_dict, device=device)
-    test_dataset = make_dataset(test_meta, test_y, test_schedule, mapping_dict, device=device)
+    train_dataset = make_dataset(train_meta, train_y, train_schedule, mapping_dict)
+    test_dataset = make_dataset(test_meta, test_y, test_schedule, mapping_dict)
     
     return train_dataset, test_dataset, mapping_dict, reverse_mappings, test_meta
 
-def make_dataset(meta, y, schedule, mappings, device= 'cpu'):
-    """
-    Create a HarvestDataset object from metadata and target DataFrames.
-    
-    Parameters:
-        meta (pd.DataFrame): DataFrame containing metadata features
-        y (pd.DataFrame): DataFrame containing target variables
-        mappings (dict): Dictionary containing feature mappings
-        device (str or torch.device): Device for tensor placement (default: 'cpu')
-        
-    Returns:
-        HarvestDataset: Dataset object containing processed features and targets
-    """
+def make_dataset(meta, y, schedule, mappings):
     features = np.column_stack([
-        meta['Ha'].to_numpy(),  # Hectares
-        meta['WeekSin'].to_numpy(),  # Week sine
-        meta['WeekCos'].to_numpy(),  # Week cosine
-        meta['Year'].to_numpy() - 2010,                  # Year
-        np.ones(len(meta))                    # Constant feature
-    ])
-    mapped_arrays = [meta[column].astype(str).map(mappings[column]).to_numpy() for column in ['ProducerCode','Parcel','Lot','Class','Type','Variety']]
+    meta['Ha'].to_numpy(),  # Hectares
+    meta['WeekSin'].to_numpy(),  # Week sine
+    meta['WeekCos'].to_numpy(),  # Week cosine
+    meta['Year'].to_numpy() - 2010,                  # Year
+    np.ones(len(meta))                    # Constant feature
+])
+    mapped_arrays = [meta[column].astype(str).map(mappings[column]).to_numpy() for column in ['ProducerCode','Parcel','Class','Type','Variety']]
     encoded_features = np.column_stack(mapped_arrays)
 
     climate_data = np.array(meta.ClimateSeries.to_list())
     schedule_data = schedule.values
-    y_kilos = y.to_numpy()
+    kilo_dist = (y.to_numpy() / y.to_numpy().sum(axis=1, keepdims=True)).cumsum(axis=1)
+    yield_dist = np.log1p(y.to_numpy() / meta['Ha'].to_numpy()[:, np.newaxis])
+    yield_log = np.log1p(y.to_numpy().sum(axis=1) / meta['Ha'].to_numpy())
 
-    return HarvestDataset(
+    dataset = HarvestDataset(
         features,
         encoded_features,
         climate_data,
-        y_kilos,
-        schedule_data,
-        device=device
+        yield_dist,
+        kilo_dist,
+        yield_log,
+        schedule_data
     )
-
+    return dataset
