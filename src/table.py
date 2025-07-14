@@ -20,6 +20,7 @@ def filter_preds(preds, actuals, column, vals,indices_dict):
     return preds_filtered, actuals_filtered
 
 def season_shift(transplant_weeks, preds, actuals):
+    # for future zakir, N is the number of plantings, M is the number of preds, K is the number of weeks
     N, M, K = preds.shape
     max_shift = transplant_weeks.max()
     out_preds = np.zeros((N, M, K + max_shift), dtype=preds.dtype)

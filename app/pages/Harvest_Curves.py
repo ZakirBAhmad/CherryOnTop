@@ -15,11 +15,13 @@ st.title('Harvest Curves')
 import app.demo as demo
 
 ###### Season shift, initializations #####
-preds = st.session_state['preds']
-actuals = st.session_state['actuals']
-plan = st.session_state['meta']
+preds = st.session_state['preds_kilo']
+actuals = st.session_state['actual_kilos']
+plan = st.session_state['test_meta'].reset_index(drop=True)
 
 graph_dict, summary_class,idx_dict = demo.create_harvest_curves(preds,actuals,plan)
+
+
 
 
 

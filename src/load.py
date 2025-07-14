@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import json
-import torch
 from src.dataset import HarvestDataset
 
 def load_data(folder_path):
@@ -46,11 +45,13 @@ def separate_year(folder_path, year=2024):
     test_meta = meta[meta['Year'] == year]
     train_y = y[y.index.isin(train_meta.index)]
     test_y = y[y.index.isin(test_meta.index)]
+    train_schedule = schedule[schedule.index.isin(train_meta.index)]
+    test_schedule = schedule[schedule.index.isin(test_meta.index)]
 
-    train_dataset = make_dataset(train_meta, train_y, schedule, mapping_dict)
-    test_dataset = make_dataset(test_meta, test_y, schedule, mapping_dict)
+    train_dataset = make_dataset(train_meta, train_y, train_schedule, mapping_dict)
+    test_dataset = make_dataset(test_meta, test_y, test_schedule, mapping_dict)
     
-    return train_dataset, test_dataset, mapping_dict, reverse_mappings, test_meta
+    return train_dataset, test_dataset, mapping_dict, reverse_mappings, train_meta, test_meta
 
 def separate_prop(folder_path, p=0.8):
     """
@@ -77,7 +78,7 @@ def separate_prop(folder_path, p=0.8):
     train_dataset = make_dataset(train_meta, train_y, train_schedule, mapping_dict)
     test_dataset = make_dataset(test_meta, test_y, test_schedule, mapping_dict)
     
-    return train_dataset, test_dataset, mapping_dict, reverse_mappings, test_meta
+    return train_dataset, test_dataset, mapping_dict, reverse_mappings, train_meta, test_meta
 
 def make_dataset(meta, y, schedule, mappings):
     features = np.column_stack([
@@ -91,18 +92,18 @@ def make_dataset(meta, y, schedule, mappings):
     encoded_features = np.column_stack(mapped_arrays)
 
     climate_data = np.array(meta.ClimateSeries.to_list())
-    schedule_data = schedule.values
-    kilo_dist = (y.to_numpy() / y.to_numpy().sum(axis=1, keepdims=True)).cumsum(axis=1)
-    yield_dist = np.log1p(y.to_numpy() / meta['Ha'].to_numpy()[:, np.newaxis])
-    yield_log = np.log1p(y.to_numpy().sum(axis=1) / meta['Ha'].to_numpy())
-
+    schedule_data = np.log1p(schedule.values)
+    kilo_dist = y.to_numpy()/ y.to_numpy().sum(axis=1, keepdims=True)
+    log_kilos = np.log1p(y.to_numpy().sum(axis=1))
+    y_kilos = y.to_numpy()
+    
     dataset = HarvestDataset(
         features,
         encoded_features,
         climate_data,
-        yield_dist,
         kilo_dist,
-        yield_log,
-        schedule_data
+        log_kilos,
+        schedule_data,
+        y_kilos
     )
     return dataset

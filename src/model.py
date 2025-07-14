@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.nn.utils import weight_norm
+from torch.nn.utils.parametrizations import weight_norm
 
 class ClimateEncoder(nn.Module):
     def __init__(self,
@@ -123,7 +123,7 @@ class DistModel(nn.Module):
         self.encoder = ClimateEncoder()
 
         self.kilo_gru = nn.GRU(
-            input_size=1,
+            input_size=2,
             num_layers=2,
             dropout=0.2,
             hidden_size=hidden_size,
@@ -139,18 +139,20 @@ class DistModel(nn.Module):
     def forward(self, features, encoded_features, climate_data, kilo_gru_input):
         """
         features: (batch_size, 5)
-        climate_data: (batch_size, 100, 10)
-        kilo_dist_input: (batch_size, 40, 2)
+        climate_data: (batch_size, 100, 9)
+        kilo_gru_input: (batch_size, 40, 2)
         """
         encoded = self.encoder(features, encoded_features, climate_data)
         batch_size = climate_data.size(0)
         
         # Ensure h0 is on the same device as the input
-        h0 = torch.zeros(2, batch_size, self.kilo_gru.hidden_size, device=kilo_gru_input.device)
+        h0 = torch.zeros(2, batch_size, self.kilo_gru.hidden_size)
         out, _ = self.kilo_gru(kilo_gru_input, h0)
         result = out[:, -1, :]
     
-        kilo_output = self.kilo_output(torch.cat((encoded,result),dim=1))
+        kilo_output = self.kilo_output(torch.cat((encoded, result), dim=1))
+        kilo_output = torch.clamp(kilo_output, min=0)
+        kilo_output = kilo_output / kilo_output.sum(dim=1, keepdim=True)
         return kilo_output
     
 class ScheduleModel(nn.Module):
@@ -164,7 +166,7 @@ class ScheduleModel(nn.Module):
         self.encoder = ClimateEncoder()
 
         self.kilo_gru = nn.GRU(
-            input_size=1,
+            input_size=2,
             hidden_size=hidden_size,
             num_layers=2,
             dropout=0.2,
@@ -180,31 +182,30 @@ class ScheduleModel(nn.Module):
     def forward(self, features, encoded_features, climate_data, kilo_gru_input):
         """
         features: (batch_size, 5)
-        climate_data: (batch_size, 100, 10)
-        kilo_gru_input: (batch_size, [5:20], 3)
-        kilo_model_output: (batch_size, 40)
+        climate_data: (batch_size, 100, 9)
+        kilo_gru_input: (batch_size, [5:20], 2)
         """
         encoded = self.encoder(features, encoded_features, climate_data)
         batch_size = climate_data.size(0)
         
         # Ensure h0 is on the same device as the input
-        h0 = torch.zeros(2, batch_size, self.kilo_gru.hidden_size, device=kilo_gru_input.device)
+        h0 = torch.zeros(2, batch_size, self.kilo_gru.hidden_size)
         out, _ = self.kilo_gru(kilo_gru_input, h0)
         result = out[:, -1, :]
     
         schedule = self.schedule_output(torch.cat((encoded,result),dim=1))
         return schedule
     
-class YieldModel(nn.Module):
+class KiloModel(nn.Module):
     def __init__(self,
                     batch_size=32,
                     hidden_size=32):
         super().__init__()
 
         self.encoder = ClimateEncoder()
-        self.yield_gru = nn.GRU(
-            input_size=1,
-            hidden_size=32,
+        self.kilo_gru = nn.GRU(
+            input_size=2,
+            hidden_size=hidden_size,
             num_layers=2,
             dropout=0.2,
             batch_first=True
@@ -216,12 +217,12 @@ class YieldModel(nn.Module):
             weight_norm(nn.Linear(batch_size, 1))
         )
         
-    def forward(self, features, encoded_features, climate_data, yield_gru_input):
+    def forward(self, features, encoded_features, climate_data, kilo_gru_input):
         encoded = self.encoder(features, encoded_features, climate_data)
         batch_size = climate_data.size(0)
         # Ensure h0 is on the same device as the input
-        h0 = torch.zeros(2, batch_size, self.yield_gru.hidden_size, device=yield_gru_input.device)
-        out, _ = self.yield_gru(yield_gru_input, h0)
+        h0 = torch.zeros(2, batch_size, self.kilo_gru.hidden_size)
+        out, _ = self.kilo_gru(kilo_gru_input, h0)
         result = out[:, -1, :]
-        yield_output = self.final_output(torch.cat((encoded, result), dim=1))
-        return yield_output
+        kilo_output = self.final_output(torch.cat((encoded, result), dim=1))
+        return kilo_output

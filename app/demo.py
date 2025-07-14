@@ -2,35 +2,34 @@
 import streamlit as st
 import src.load as load
 import pandas as pd
-import src.utils as utils
-import torch
-from src.model import KiloModel,ScheduleModel
+
+
 import src.table as table
 import src.graphs as graphs
-from src.encoder import ClimateEncoder
 import plotly.graph_objects as go
 import numpy as np
+import app.utils as utils
 
 @st.cache_resource
-def initialize_data(path_meta, path_y, path_mapping_dict):
-    train, test, mappings, reverse_mappings, meta  = load.separate_prop('../data/processed/')
-    return train, test, mappings, reverse_mappings, meta
+def initialize_data(folder_path):
+    train, test, mappings, reverse_mappings, train_meta, test_meta  = load.separate_year(folder_path)
+    return train, test, mappings, reverse_mappings, train_meta, test_meta
 
 def display_production_plan(plan):
     st.write('Production Plan:')
     agg_cols = {'Ha':'sum',
      'WeekTransplanted':['min','max','nunique']}
 
-    summary_ranch = plan.groupby(['Ranch','Class','Type']).agg(agg_cols)
+    summary_ranch = plan.groupby(['ProducerCode','Class','Type']).agg(agg_cols)
     summary_class = plan.groupby(['Class','Type']).agg(agg_cols)
-    summary_class_ranch = plan.groupby(['Class','Type','Ranch']).agg(agg_cols)
+    summary_class_ranch = plan.groupby(['Class','Type','ProducerCode']).agg(agg_cols)
 
     st.dataframe(summary_ranch,use_container_width=True)
     st.dataframe(summary_class,use_container_width=True)
     st.dataframe(summary_class_ranch,use_container_width=True)
 
     ranch_pivot = plan.pivot_table(
-    index=['Ranch', 'Class', 'Type'],
+    index=['ProducerCode', 'Class', 'Type'],
     columns='WeekTransplanted',
     values='Ha',
     aggfunc='sum',
@@ -74,7 +73,7 @@ def display_production_plan(plan):
     st.dataframe(class_pivot,use_container_width=True)
 
     ranch_pivot = plan.pivot_table(
-    index='Ranch',
+    index='ProducerCode',
     columns='WeekTransplanted',
     values='Ha',
     aggfunc='sum',
@@ -108,23 +107,13 @@ def display_production_plan(plan):
     st.dataframe(ranch_pivot,use_container_width=True)
 
 @st.cache_resource
-def create_models(_kilo_model_path, _schedule_model_path, _final_model_path):
-    kilo_encoder = ClimateEncoder()
-    schedule_encoder = ClimateEncoder()
-    kilo_model = KiloModel(kilo_encoder)
-    kilo_model.load_state_dict(torch.load(_kilo_model_path))
-    kilo_model.eval()
+def create_models(folder_path):
+    models = utils.load_models(folder_path)
+    return models
 
-    schedule_model = ScheduleModel(schedule_encoder)
-    schedule_model.load_state_dict(torch.load(_schedule_model_path))
-    schedule_model.eval()
-
-    return kilo_model, schedule_model
-
-def create_predictions(kilo_model, schedule_model, test):
-    preds = utils.predict_gridded_harvest(kilo_model,schedule_model,test)
-    actuals = test.Y.detach().numpy()
-    return preds, actuals
+def create_predictions(folder_path,models,test):
+    preds_kilo, preds_sched = utils.read_preds(folder_path,test)
+    return preds_kilo, preds_sched
     
 def create_harvest_curves(preds,actuals,plan):
     graph_dict = {}
@@ -141,7 +130,7 @@ def create_harvest_curves(preds,actuals,plan):
     summary_class = plan.groupby(['Class','Type']).agg(
     {'Ha':'sum',
      'WeekTransplanted':['min','max','nunique'],
-     'Ranch':'nunique'
+     'ProducerCode':'nunique'
 })
     
     types = summary_class.index.get_level_values('Type')
@@ -163,9 +152,6 @@ def create_harvest_curves(preds,actuals,plan):
 def graph_classes(classes, preds, actuals, idx_dict, plan):
     transplant_weeks = plan.WeekTransplanted.to_numpy()
     year_preds, year_actuals = table.season_shift(transplant_weeks,preds,actuals)
-
-    
-    classes_idx = table.get_indices('Class',classes,idx_dict)
 
     year_preds_by_class, year_actuals_by_class = table.filter_preds(year_preds,year_actuals,'Class',classes,idx_dict)
     preds_by_class, actuals_by_class = table.filter_preds(preds,actuals,'Class',classes,idx_dict)
@@ -195,10 +181,10 @@ def graph_ranches(ranches, preds, actuals, idx_dict, plan):
     year_preds, year_actuals = table.season_shift(transplant_weeks,preds,actuals)
 
     
-    ranch_idx = table.get_indices('Ranch',ranches,idx_dict)
+    ranch_idx = table.get_indices('ProducerCode',ranches,idx_dict)
 
-    year_preds_by_ranch, year_actuals_by_ranch = table.filter_preds(year_preds,year_actuals,'Ranch',ranches,idx_dict)
-    preds_by_ranch, actuals_by_ranch = table.filter_preds(preds,actuals,'Ranch',ranches,idx_dict)
+    year_preds_by_ranch, year_actuals_by_ranch = table.filter_preds(year_preds,year_actuals,'ProducerCode',ranches,idx_dict)
+    preds_by_ranch, actuals_by_ranch = table.filter_preds(preds,actuals,'ProducerCode',ranches,idx_dict)
     fig1 = graphs.graph_harvest_stacked(year_preds_by_ranch,year_actuals_by_ranch,ranches)
     fig2 = graphs.graph_harvest_stacked(preds_by_ranch,actuals_by_ranch,ranches)
 

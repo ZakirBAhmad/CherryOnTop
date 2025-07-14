@@ -4,24 +4,28 @@ from torch.utils.data import Dataset
 class HarvestDataset(Dataset):
 
 
-    def __init__(self, 
+    def __init__(self,
                  features,
                  encoded_features,
                  climate_data,
-                 yield_dist,       
                  kilo_dist,
-                 yield_log,       
-                 schedule
+                 log1p_kilos,      
+                 log1p_schedule,
+                 Y_kilos
                 ):
 
         self.features = torch.tensor(features, dtype=torch.float32)
         self.encoded_features = torch.tensor(encoded_features, dtype=torch.long)
         self.climate_data = torch.tensor(climate_data, dtype=torch.float32)
-        self.yield_dist = torch.tensor(yield_dist, dtype=torch.float32).unsqueeze(2)
-        self.kilo_dist = torch.tensor(kilo_dist, dtype=torch.float32).unsqueeze(2)
+        self.kilo_dist = torch.tensor(kilo_dist, dtype=torch.float32)
+        week_tensor = torch.arange(1, 41).repeat(kilo_dist.shape[0], 1).unsqueeze(-1)
+        self.kilo_gru_input = torch.cat((self.kilo_dist.unsqueeze(-1), week_tensor), dim=-1)
+        self.Y_kilos = torch.tensor(Y_kilos, dtype=torch.float32)
 
-        self.Y_yield_log = torch.tensor(yield_log, dtype=torch.float32)
-        self.Y_schedule = torch.tensor(schedule, dtype=torch.float32)
+
+
+        self.log1p_kilos = torch.tensor(log1p_kilos, dtype=torch.float32)
+        self.log1p_schedule = torch.tensor(log1p_schedule, dtype=torch.float32)
 
     def __len__(self):
         return len(self.features)
@@ -33,10 +37,11 @@ class HarvestDataset(Dataset):
             self.features[idx],
             self.encoded_features[idx],
             climate_data,
-            self.yield_dist[idx],
+            self.kilo_gru_input[idx],
             self.kilo_dist[idx],
-            self.Y_yield_log[idx],
-            self.Y_schedule[idx],
+            self.log1p_kilos[idx],
+            self.log1p_schedule[idx],
+            self.Y_kilos[idx],
             idx
         )
     
@@ -46,9 +51,10 @@ class HarvestDataset(Dataset):
             'features': self.features.shape,
             'encoded_features': self.encoded_features.shape,
             'climate_data': self.climate_data.shape,
-            'yield_dist': self.yield_dist.shape,
+            'kilo_gru_input': self.kilo_gru_input.shape,
             'kilo_dist': self.kilo_dist.shape,
-            'yield_log': self.Y_yield_log.shape,
-            'schedule': self.Y_schedule.shape
+            'log1p_kilos': self.log1p_kilos.shape,
+            'log1p_schedule': self.log1p_schedule.shape,
+            'Y_kilos': self.Y_kilos.shape
         }
         return shapes

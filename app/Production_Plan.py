@@ -9,22 +9,31 @@ if project_root not in sys.path:
 
 ###### Imports #####
 import app.demo as demo
+import app.utils as utils
 
 ###### Title #####
 st.title('Cherry On Top')
+data_path = 'data/processed/'
+model_path = 'app/models'
+preds_path = 'app/preds'
 
 ###### Initialize Production Plan, mapping dict, model, and predictions#####
-train, test, mappings, meta = demo.initialize_data('data/meta.json','data/y.csv','data/mappings.json')
-model = demo.create_model('app/model1.pth')
-preds, actuals = demo.create_predictions(model,test)
+train_dataset, test_dataset, mappings, reverse_mappings, train_meta, test_meta  = demo.initialize_data(data_path)
+demo.display_production_plan(test_meta)
+
+models = utils.load_models(model_path)
+preds_kilo, preds_sched = demo.create_predictions(preds_path,models,test_dataset)
 
 ####### Display Production Plan #######
 
-demo.display_production_plan(meta)
+
 
 ##### Save shit to session state #######
 
-st.session_state['model'] = model
-st.session_state['preds'] = preds
-st.session_state['actuals'] = actuals
-st.session_state['meta'] = meta
+st.session_state['models'] = models
+st.session_state['preds_kilo'] = preds_kilo
+st.session_state['preds_sched'] = preds_sched
+st.session_state['train_meta'] = train_meta.reset_index(drop=True)
+st.session_state['test_meta'] = test_meta.reset_index(drop=True)
+st.session_state['mappings'] = mappings
+st.session_state['reverse_mappings'] = reverse_mappings
