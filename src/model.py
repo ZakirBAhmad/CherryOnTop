@@ -6,6 +6,11 @@ class ClimateEncoder(nn.Module):
     def __init__(self,
                  input_dim=5,
                  embedding_dim=12,
+                 ranch_dim=None,
+                 parcel_dim=None,
+                 class_dim=None,
+                 type_dim=None,
+                 variety_dim=None,
                  hidden_dim=32,
                  n_ranches=13,
                  n_parcels=44,
@@ -13,7 +18,9 @@ class ClimateEncoder(nn.Module):
                  n_types=14,
                  n_varieties=59,
                  climate_input_dim=9,
-                 climate_hidden_dim=32):
+                 climate_hidden_dim=32,
+                 num_layers=2,
+                 dropout=0.2):
         super().__init__()
 
         # Feature processing
@@ -26,17 +33,17 @@ class ClimateEncoder(nn.Module):
         self.climate_gru = nn.GRU(
             input_size=climate_input_dim, 
             hidden_size=climate_hidden_dim,
-            num_layers=2,
-            dropout=0.2,
+            num_layers=num_layers,
+            dropout=dropout,
             batch_first=True
         )
 
         # Embedding dimensions
-        self.ranch_dim = embedding_dim  # 12 ranches
-        self.parcel_dim = embedding_dim  # 12 ranches
-        self.class_dim = embedding_dim  # 2 classes
-        self.type_dim = embedding_dim  # 14 types
-        self.variety_dim = embedding_dim  # 38 varieties
+        self.ranch_dim = ranch_dim if ranch_dim is not None else embedding_dim  # 12 ranches
+        self.parcel_dim = parcel_dim if parcel_dim is not None else embedding_dim  # 12 ranches
+        self.class_dim = class_dim if class_dim is not None else embedding_dim  # 2 classes
+        self.type_dim = type_dim if type_dim is not None else embedding_dim  # 14 types
+        self.variety_dim = variety_dim if variety_dim is not None else embedding_dim  # 38 varieties
 
         self.ranch_emb = nn.Embedding(n_ranches, self.ranch_dim)
         self.parcel_emb = nn.Embedding(n_parcels, self.parcel_dim)
@@ -115,17 +122,38 @@ class DistModel(nn.Module):
     def __init__(self,
                  output_dim=40,
                  hidden_size=32,
-                 batch_size=32):
+                 batch_size=32,
+                 dropout=0.2,
+                 num_layers=2,
+                 climate_hidden_dim=32,
+                 climate_num_layers=2,
+                 climate_dropout=0.2,
+                 embedding_dim=12,
+                 ranch_dim=None,
+                 parcel_dim=None,
+                 class_dim=None,
+                 type_dim=None,
+                 variety_dim=None):
         super().__init__()
         
         self.output_dim = output_dim
         
-        self.encoder = ClimateEncoder()
+        self.encoder = ClimateEncoder(
+            climate_hidden_dim=climate_hidden_dim,
+            num_layers=climate_num_layers,
+            dropout=climate_dropout,
+            ranch_dim=ranch_dim,
+            parcel_dim=parcel_dim,
+            class_dim=class_dim,
+            type_dim=type_dim,
+            variety_dim=variety_dim,
+            embedding_dim=embedding_dim
+        )
 
         self.kilo_gru = nn.GRU(
             input_size=2,
-            num_layers=2,
-            dropout=0.2,
+            num_layers=num_layers,
+            dropout=dropout,
             hidden_size=hidden_size,
             batch_first=True
         )
@@ -159,17 +187,38 @@ class ScheduleModel(nn.Module):
     def __init__(self,
                  output_dim=5,
                  batch_size=32,
-                 hidden_size=32):
+                 hidden_size=32,
+                 dropout=0.2,
+                 num_layers=2,
+                 climate_hidden_dim=32,
+                 climate_num_layers=2,
+                 climate_dropout=0.2,
+                 embedding_dim=12,
+                 ranch_dim=None,
+                 parcel_dim=None,
+                 class_dim=None,
+                 type_dim=None,
+                 variety_dim=None):
         super().__init__()
         
         self.output_dim = output_dim
-        self.encoder = ClimateEncoder()
+        self.encoder = ClimateEncoder(
+            climate_hidden_dim=climate_hidden_dim,
+            num_layers=climate_num_layers,
+            dropout=climate_dropout,
+            ranch_dim=ranch_dim,
+            parcel_dim=parcel_dim,
+            class_dim=class_dim,
+            type_dim=type_dim,
+            variety_dim=variety_dim,
+            embedding_dim=embedding_dim
+        )
 
         self.kilo_gru = nn.GRU(
             input_size=2,
             hidden_size=hidden_size,
-            num_layers=2,
-            dropout=0.2,
+            num_layers=num_layers,
+            dropout=dropout,
             batch_first=True
         )
 
@@ -199,15 +248,36 @@ class ScheduleModel(nn.Module):
 class KiloModel(nn.Module):
     def __init__(self,
                     batch_size=32,
-                    hidden_size=32):
+                    hidden_size=32,
+                    dropout=0.2,
+                    num_layers=2,
+                    climate_hidden_dim=32,
+                    climate_num_layers=2,
+                    climate_dropout=0.2,
+                    embedding_dim=12,
+                    ranch_dim=None,
+                    parcel_dim=None,
+                    class_dim=None,
+                    type_dim=None,
+                    variety_dim=None):
         super().__init__()
 
-        self.encoder = ClimateEncoder()
+        self.encoder = ClimateEncoder(
+            climate_hidden_dim=climate_hidden_dim,
+            num_layers=climate_num_layers,
+            dropout=climate_dropout,
+            ranch_dim=ranch_dim,
+            parcel_dim=parcel_dim,
+            class_dim=class_dim,
+            type_dim=type_dim,
+            variety_dim=variety_dim,
+            embedding_dim=embedding_dim
+        )
         self.kilo_gru = nn.GRU(
             input_size=2,
             hidden_size=hidden_size,
-            num_layers=2,
-            dropout=0.2,
+            num_layers=num_layers,
+            dropout=dropout,
             batch_first=True
         )
         
