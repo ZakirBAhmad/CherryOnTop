@@ -1,41 +1,57 @@
 import streamlit as st
+import src.table as table
 st.set_page_config(layout="wide")
 
 st.write("to do: prediction adjustment graphs for each week, mask for what batches are actually active. group table by week transplanted")
+value = st.slider("Current Weeks", min_value=0, max_value=51, value=20)
 
-st.write("Insert week Slider")
-st.title("Week [insert week number]")
+st.title(f"Week {value}")
 st.write("[this week/last week/next week/x weeks ago/x weeks from now]")
-
-col1, col2, col3, col4, col5 = st.columns(5)
+idx_dict = st.session_state['data']['idx_dict']
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.write("last week prediction history")
+    week = value - 1
+    st.write(f"{week} prediction history")
+    graph = st.session_state['pe_graphs'][str(week)]
+    st.plotly_chart(graph)
 with col2:
+    week = value
     st.write("this week prediction history")
+    graph = st.session_state['pe_graphs'][str(value)]
+    st.plotly_chart(graph)
 with col3:
-    st.write("next week prediction history")
+    week = value + 1
+    st.write(f"{week} prediction history")
+    graph = st.session_state['pe_graphs'][str(week)]
+    st.plotly_chart(graph)
 with col4:
-    st.write("2 weeks from now prediction history")
-with col5:
-    st.write("3 weeks from now prediction history")
+    week = value + 2
+    st.write(f"{week} prediction history")
+    graph = st.session_state['pe_graphs'][str(week)]
+    st.plotly_chart(graph)
+
 
 st.title("breakdown by class")
-col1, col2, col3= st.columns(3)
-with col1:
-    st.write("cherry")
-    st.write("breakdown by ranch")
-    st.write("breakdown by week transplanted")
-    st.write("insert table, w/ kg/ha so far, total kg/ha projected. rows will be weeks transplant, columns will be weeks of the season")
-with col2:
-    st.write("uva")
-    st.write("cherry")
-    st.write("breakdown by ranch")
-    st.write("breakdown by week transplanted")
-    st.write("insert table, w/ kg/ha so far, total kg/ha projected. rows will be weeks transplant, columns will be weeks of the season")
-with col3:
-    st.write("mix")
-    st.write("cherry")
-    st.write("breakdown by ranch")
-    st.write("breakdown by week transplanted")
-    st.write("insert table, w/ kg/ha so far, total kg/ha projected. rows will be weeks transplant, columns will be weeks of the season")
+row = st.session_state['pw_tables'][str(value)]
+
+
+st.write("cherry")
+preds_by_week, kg_so_far = row['Cherry']
+df = table.frame_table(preds_by_week, kg_so_far, idx_dict, value)
+# Highlight the "actual" column if present
+if value in df.columns:
+    df = df.style.highlight_between(subset=[value], left=None, right=None, color='yellow')
+st.dataframe(df)
+
+
+st.write("uva")
+preds_by_week, kg_so_far = row['Uva']
+df = table.frame_table(preds_by_week, kg_so_far, idx_dict, value)
+st.dataframe(df)
+
+st.write("mix")
+preds_by_week, kg_so_far = row['Mix']
+df = table.frame_table(preds_by_week, kg_so_far, idx_dict, value)
+st.dataframe(df)
+

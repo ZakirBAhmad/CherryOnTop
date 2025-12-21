@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import control.paths as paths
+import app.paths as paths
 
 def load_init_preds():
     init_kg = np.loadtxt(paths.PREDS / 'initial_kilos_cleaned.csv', delimiter=',')

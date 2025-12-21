@@ -91,7 +91,7 @@ def pred_evolution(this_week,szn_act_kg,szn_init_kg,szn_adj_kg,idx_dict,color_se
             mode='lines',
             line={"color": color, "width": 2, "dash": "dash"},
             name=f'initial preds for {c}',
-            showlegend=True,
+            showlegend=False,
         ))
 
         #add the actuals
@@ -101,9 +101,15 @@ def pred_evolution(this_week,szn_act_kg,szn_init_kg,szn_adj_kg,idx_dict,color_se
             mode='lines',
             line={"color": color, "width": 2, "dash": "dot"},
             name=f'actual kg for {c}',
-            showlegend=True,
+            showlegend=False,
         ))
     fig.update_layout(
-        title=f"Evolution of Predictions for Week {this_week}"
-    )
+        title=f"Evolution of Predictions for Week {this_week}",
+        legend={
+            'orientation':'h',
+            'yanchor':'top',
+            'y':-0.15,
+            'xanchor':'center',
+            'x':0.5}
+        )
     return fig
