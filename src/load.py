@@ -13,6 +13,11 @@ def load_actuals():
     meta = pd.read_csv(paths.PREDS / 'meta.csv')
     return actual_kg, actual_sched, meta
 
+def load_proper_preds():
+    kg_preds = np.load(paths.PREDS / 'kilo_proper_preds.npz')['arr_0']
+    sched_preds = np.load(paths.PREDS / 'sched_proper_preds.npz')['arr_0']
+    return kg_preds, sched_preds
+
 def load_adj_preds():
     adj_kg = np.load(paths.PREDS / 'kilo_reg_preds.npz')
     adj_sched = np.load(paths.PREDS / 'sched_reg_preds.npz')

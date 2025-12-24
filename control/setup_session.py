@@ -31,6 +31,24 @@ def load_data():
         'szn_adj_sched': szn_adj_sched,
         'idx_dict': idx_dict}
 
+def load_proper_data():
+    kg_preds, sched_preds = load.load_proper_preds()
+    act_kg, act_sched, meta = load.load_actuals()
+    transplant_weeks = meta.transplant_week.values
+
+    szn_adj_kg, szn_act_kg = table.season_math(kg_preds,act_kg,transplant_weeks)
+    idx_dict = load.create_idx_dict(meta)
+
+    season_init_kg = szn_adj_kg[:,0]
+
+    st.session_state['data'] = {
+        'szn_adj_kg': szn_adj_kg,
+        'szn_act_kg': szn_act_kg,
+        'idx_dict': idx_dict,
+        'szn_init_kg': season_init_kg}
+
+
+
 def pred_evolution_graphs():
     szn_adj_kg = st.session_state['data']['szn_adj_kg']
     szn_act_kg = st.session_state['data']['szn_act_kg']

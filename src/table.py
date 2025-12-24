@@ -1,5 +1,43 @@
 import numpy as np
 import pandas as pd
+
+def season_math(kg_preds,act_kg,transplant_weeks):
+
+    N = len(kg_preds)
+
+    season_preds = np.zeros((N, 51, 71), dtype=kg_preds.dtype)
+
+    n_idx = np.arange(N)[:, None, None]      # (N,1,1)
+    t_idx = np.arange(20)[None, :, None]     # (1,20,1)
+    k_idx = np.arange(40)[None, None, :]     # (1,1,40)
+
+    tw = transplant_weeks[:, None, None]     # (N,1,1)
+
+    i_idx = tw + t_idx   # (N,20,1)
+    j_idx = tw + k_idx   # (N,1,40)
+
+    season_preds[n_idx, i_idx, j_idx] = kg_preds
+
+    actuals_season = np.zeros((N, 71), dtype=act_kg.dtype)
+
+    k = np.arange(40)[None, :]                 # (1,40)
+    j_idx = transplant_weeks[:, None] + k      # (N,40)
+
+    actuals_season[np.arange(N)[:, None], j_idx] = act_kg
+
+    i = np.arange(51)[None, :, None]  # (1,51,1)
+    j = np.arange(71)[None, None, :]  # (1,1,71)
+
+    known_mask = j <= i               # (1,51,71)
+
+    season_kg = np.where(
+        known_mask,
+        actuals_season[:, None, :],
+        season_preds
+    )
+    return season_kg, actuals_season
+
+
 def collapse_table(table,idx_dict):
     return np.stack(
         [
