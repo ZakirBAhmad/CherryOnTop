@@ -1,0 +1,186 @@
+transplant_date,parcel,lot,ranch,variety,ha,class,type,transplant_week,year
+2024-01-26,V02,13,VAP,King,0.828,Uva,Uva Roja,4,2024
+2024-01-26,V02,14,VAP,Prince,0.4416,Uva,Uva Roja,4,2024
+2024-01-26,V02,14,VAP,Tymoty,0.4224,Cherry,Cherry Rojo,4,2024
+2024-02-09,V02,17,VAP,King,0.45,Uva,Uva Roja,6,2024
+2024-02-09,V02,17,VAP,Pera Amarilla Viv,0.054,Mix,Pera Amarilla,6,2024
+2024-02-09,V02,17,VAP,Pera Roja Viv,0.072,Mix,Pera Roja,6,2024
+2024-02-09,V02,17,VAP,Top 2417,0.054,Mix,Cherry Naranja,6,2024
+2024-02-09,V02,18,VAP,Tymoty,0.48,Cherry,Cherry Rojo,6,2024
+2024-02-09,V02,22,VAP,Tymoty,0.48,Cherry,Cherry Rojo,6,2024
+2024-02-09,V02,26,VAP,Top 2323,0.224,Mix,Cherry Rosa,6,2024
+2024-02-09,V02,26,VAP,Tymoty,0.56,Cherry,Cherry Rojo,6,2024
+2024-02-09,V02,26,VAP,Yoyomo,0.176,Mix,Uva Amarilla,6,2024
+2024-02-10,V02,21,VAP,King,0.54,Uva,Uva Roja,6,2024
+2024-02-10,V02,25,VAP,King,0.306,Uva,Uva Roja,6,2024
+2024-02-10,V02,25,VAP,Prince,0.864,Uva,Uva Roja,6,2024
+2024-03-01,V02,48,VAP,Tymoty,0.72,Cherry,Cherry Rojo,9,2024
+2024-03-01,V02,49,VAP,King,0.162,Uva,Uva Roja,9,2024
+2024-03-01,V02,49,VAP,Tymoty,0.486,Cherry,Cherry Rojo,9,2024
+2024-03-01,V02,50,VAP,King,0.2992,Uva,Uva Roja,9,2024
+2024-03-01,V02,50,VAP,Top 2323,0.2464,Mix,Cherry Rosa,9,2024
+2024-03-01,V02,50,VAP,Yoyomo,0.176,Mix,Uva Amarilla,9,2024
+2024-03-01,V02,52,VAP,Prince,0.522,Uva,Uva Roja,9,2024
+2024-03-13,V02,53,VAP,Pera Amarilla Viv,0.036,Mix,Pera Amarilla,11,2024
+2024-03-13,V02,53,VAP,Pera Roja Viv,0.09,Mix,Pera Roja,11,2024
+2024-03-13,V02,53,VAP,Prince,0.468,Uva,Uva Roja,11,2024
+2024-03-14,V02,54,VAP,Prince,0.77,Uva,Uva Roja,11,2024
+2024-03-14,V02,55,VAP,Prince,0.6669,Uva,Uva Roja,11,2024
+2024-03-21,S27,2,SGB,King,0.3672,Uva,Uva Roja,12,2024
+2024-03-22,S25,3,SGB,Tymoty,0.3774,Cherry,Cherry Rojo,12,2024
+2024-03-23,V02,1,VAP,King,0.0864,Uva,Uva Roja,12,2024
+2024-03-23,V02,1,VAP,Tymoty,1.152,Cherry,Cherry Rojo,12,2024
+2024-03-23,V02,1,VAP,Yoyomo,0.0288,Mix,Uva Amarilla,12,2024
+2024-03-23,V02,30,VAP,King,0.832,Uva,Uva Roja,12,2024
+2024-03-23,V02,30,VAP,Top 2323,0.192,Mix,Cherry Rosa,12,2024
+2024-03-23,V02,30,VAP,Top 2417,0.064,Mix,Cherry Naranja,12,2024
+2024-03-23,V02,30,VAP,Yoyomo,0.032,Mix,Uva Amarilla,12,2024
+2024-04-05,S07,2,SFB,Prince,0.344,Uva,Uva Roja,14,2024
+2024-04-05,S07,2,SFB,Top 2417,0.0172,Mix,Cherry Naranja,14,2024
+2024-04-05,S07,7,SFB,King,0.258,Uva,Uva Roja,14,2024
+2024-04-05,S07,8,SFB,Pera Amarilla Viv,0.096,Mix,Pera Amarilla,14,2024
+2024-04-05,S07,8,SFB,Pera Roja Viv,0.096,Mix,Pera Roja,14,2024
+2024-04-05,S07,8,SFB,Top 2323,0.224,Mix,Cherry Rosa,14,2024
+2024-04-05,S07,8,SFB,Tymoty,0.736,Cherry,Cherry Rojo,14,2024
+2024-04-05,S07,8,SFB,Yoyomo,0.16,Mix,Uva Amarilla,14,2024
+2024-04-06,S04,2,SJB,King,0.8999,Uva,Uva Roja,14,2024
+2024-04-06,S04,3,SJB,Pera Amarilla Viv,0.054,Mix,Pera Amarilla,14,2024
+2024-04-06,S04,3,SJB,Pera Roja Viv,0.045,Mix,Pera Roja,14,2024
+2024-04-06,S04,3,SJB,Top 2323,0.144,Mix,Cherry Rosa,14,2024
+2024-04-06,S04,3,SJB,Top 2417,0.036,Mix,Cherry Naranja,14,2024
+2024-04-06,S04,3,SJB,Tymoty,0.6582,Cherry,Cherry Rojo,14,2024
+2024-04-06,S04,3,SJB,Yoyomo,0.09,Mix,Uva Amarilla,14,2024
+2024-04-10,S15,3,SGB,Prince,0.063,Uva,Uva Roja,15,2024
+2024-04-10,S15,3,SGB,Top 2323,0.168,Mix,Cherry Rosa,15,2024
+2024-04-10,S15,3,SGB,Top 2417,0.084,Mix,Cherry Naranja,15,2024
+2024-04-10,S15,3,SGB,Yoyomo,0.0525,Mix,Uva Amarilla,15,2024
+2024-04-11,N02,67,OAP,Prince,0.756,Uva,Uva Roja,15,2024
+2024-04-13,N02,57,OAP,Tymoty,0.594,Cherry,Cherry Rojo,15,2024
+2024-04-13,N02,57,OAP,Yoyomo,0.162,Mix,Uva Amarilla,15,2024
+2024-04-13,N02,58,OAP,King,0.45,Uva,Uva Roja,15,2024
+2024-04-13,N02,58,OAP,Top 2323,0.198,Mix,Cherry Rosa,15,2024
+2024-04-13,N02,58,OAP,Top 2417,0.054,Mix,Cherry Naranja,15,2024
+2024-04-15,S04,2,SJB,Prince,0.1,Uva,Uva Roja,16,2024
+2024-04-17,S06,3,SMB,Prince,0.42,Uva,Uva Roja,16,2024
+2024-04-17,S06,3,SMB,Tymoty,0.58,Cherry,Cherry Rojo,16,2024
+2024-04-20,N02,54,OAP,Tymoty,0.774,Cherry,Cherry Rojo,16,2024
+2024-04-20,N02,55,OAP,King,0.72,Uva,Uva Roja,16,2024
+2024-04-20,N02,55,OAP,Pera Amarilla Viv,0.054,Mix,Pera Amarilla,16,2024
+2024-04-20,N02,56,OAP,King,0.702,Uva,Uva Roja,16,2024
+2024-04-20,N02,56,OAP,Pera Roja Viv,0.072,Mix,Pera Roja,16,2024
+2024-04-20,V02,36,VAP,Pera Amarilla Viv,0.115,Mix,Pera Amarilla,16,2024
+2024-04-20,V02,36,VAP,Pera Roja Viv,0.115,Mix,Pera Roja,16,2024
+2024-04-20,V02,36,VAP,Top 2323,0.138,Mix,Cherry Rosa,16,2024
+2024-04-20,V02,36,VAP,Top 2417,0.023,Mix,Cherry Naranja,16,2024
+2024-04-20,V02,36,VAP,Tymoty,0.575,Cherry,Cherry Rojo,16,2024
+2024-04-20,V02,36,VAP,Yoyomo,0.207,Mix,Uva Amarilla,16,2024
+2024-04-22,N02,45,OAP,Top 2323,0.234,Mix,Cherry Rosa,17,2024
+2024-04-22,N02,45,OAP,Tymoty,0.23,Cherry,Cherry Rojo,17,2024
+2024-04-22,N02,45,OAP,Yoyomo,0.144,Mix,Uva Amarilla,17,2024
+2024-04-22,S05,11,SGB,King,0.119,Uva,Uva Roja,17,2024
+2024-04-22,S05,11,SGB,Pera Amarilla Viv,0.0595,Mix,Pera Amarilla,17,2024
+2024-04-22,S05,11,SGB,Pera Roja Viv,0.0595,Mix,Pera Roja,17,2024
+2024-04-22,S05,11,SGB,Top 2323,0.0952,Mix,Cherry Rosa,17,2024
+2024-04-22,S05,11,SGB,Top 2417,0.0238,Mix,Cherry Naranja,17,2024
+2024-04-22,S05,11,SGB,Tymoty,0.2499,Cherry,Cherry Rojo,17,2024
+2024-04-22,S05,11,SGB,Yoyomo,0.119,Mix,Uva Amarilla,17,2024
+2024-04-23,S07,6,SFB,Prince,0.72,Uva,Uva Roja,17,2024
+2024-04-23,S07,9,SFB,Pera Amarilla Viv,0.2,Mix,Pera Amarilla,17,2024
+2024-04-23,S07,9,SFB,Pera Roja Viv,0.2,Mix,Pera Roja,17,2024
+2024-04-23,S12,9,SGB,King,0.595,Uva,Uva Roja,17,2024
+2024-04-27,V02,46,VAP,King,0.2592,Uva,Uva Roja,17,2024
+2024-04-27,V02,46,VAP,Prince,0.0691,Uva,Uva Roja,17,2024
+2024-04-27,V02,46,VAP,Top 2323,0.0691,Mix,Cherry Rosa,17,2024
+2024-04-27,V02,46,VAP,Yoyomo,0.1037,Mix,Uva Amarilla,17,2024
+2024-04-27,V02,47,VAP,King,0.84,Uva,Uva Roja,17,2024
+2024-04-27,V02,48,VAP,Tymoty,0.936,Cherry,Cherry Rojo,17,2024
+2024-05-02,S29,5,SMB,King,0.38,Uva,Uva Roja,18,2024
+2024-05-02,S29,5,SMB,Pera Amarilla Viv,0.08,Mix,Pera Amarilla,18,2024
+2024-05-02,S29,5,SMB,Pera Roja Viv,0.08,Mix,Pera Roja,18,2024
+2024-05-02,S29,5,SMB,Prince,0.18,Uva,Uva Roja,18,2024
+2024-05-02,S29,5,SMB,Top 2323,0.12,Mix,Cherry Rosa,18,2024
+2024-05-02,S29,5,SMB,Top 2417,0.06,Mix,Cherry Naranja,18,2024
+2024-05-02,S29,5,SMB,Yoyomo,0.12,Mix,Uva Amarilla,18,2024
+2024-05-14,N02,42,OAP,Tymoty,0.882,Cherry,Cherry Rojo,20,2024
+2024-05-14,N02,43,OAP,Pera Amarilla Viv,0.054,Mix,Pera Amarilla,20,2024
+2024-05-14,N02,43,OAP,Pera Roja Viv,0.072,Mix,Pera Roja,20,2024
+2024-05-14,N02,43,OAP,Top 2323,0.162,Mix,Cherry Rosa,20,2024
+2024-05-14,N02,43,OAP,Top 2417,0.27,Mix,Cherry Naranja,20,2024
+2024-05-14,N02,43,OAP,Tymoty,0.162,Cherry,Cherry Rojo,20,2024
+2024-05-14,N02,43,OAP,Yoyomo,0.234,Mix,Uva Amarilla,20,2024
+2024-05-14,N02,44,OAP,King,0.648,Uva,Uva Roja,20,2024
+2024-05-14,N02,44,OAP,Pera Amarilla Viv,0.09,Mix,Pera Amarilla,20,2024
+2024-05-15,N02,41,OAP,King,0.882,Uva,Uva Roja,20,2024
+2024-05-24,S29,1,SMB,King,0.5,Uva,Uva Roja,21,2024
+2024-05-24,S29,1,SMB,Top 2323,0.16,Mix,Cherry Rosa,21,2024
+2024-05-24,S29,1,SMB,Yoyomo,0.12,Mix,Uva Amarilla,21,2024
+2024-05-24,S29,2,SMB,Prince,0.5,Uva,Uva Roja,21,2024
+2024-05-27,S06,4,SMB,King,0.2,Uva,Uva Roja,22,2024
+2024-05-27,S06,4,SMB,Tymoty,0.72,Cherry,Cherry Rojo,22,2024
+2024-05-27,S06,4,SMB,Yoyomo,0.04,Mix,Uva Amarilla,22,2024
+2024-05-31,N02,8,OAP,Top 2323,0.234,Mix,Cherry Rosa,22,2024
+2024-05-31,N02,8,OAP,Tymoty,0.738,Cherry,Cherry Rojo,22,2024
+2024-05-31,N02,9,OAP,King,0.972,Uva,Uva Roja,22,2024
+2024-06-11,N02,16,OAP,King,0.306,Uva,Uva Roja,24,2024
+2024-06-11,N02,16,OAP,Prince,0.666,Uva,Uva Roja,24,2024
+2024-06-11,S04,6,SJB,King,0.9996,Uva,Uva Roja,24,2024
+2024-06-11,S04,7,SJB,Pera Amarilla Viv,0.0552,Mix,Pera Amarilla,24,2024
+2024-06-11,S04,7,SJB,Pera Roja Viv,0.0552,Mix,Pera Roja,24,2024
+2024-06-11,S04,7,SJB,Top 2323,0.1554,Mix,Cherry Rosa,24,2024
+2024-06-11,S04,7,SJB,Top 2417,0.0444,Mix,Cherry Naranja,24,2024
+2024-06-11,S04,7,SJB,Tymoty,0.552,Cherry,Cherry Rojo,24,2024
+2024-06-11,S04,7,SJB,Yoyomo,0.1,Mix,Uva Amarilla,24,2024
+2024-06-29,N02,13,OAP,King,0.594,Uva,Uva Roja,26,2024
+2024-06-29,N02,13,OAP,Yoyomo,0.342,Mix,Uva Amarilla,26,2024
+2024-06-29,N02,14,OAP,King,0.504,Uva,Uva Roja,26,2024
+2024-06-29,N02,14,OAP,Prince,0.288,Uva,Uva Roja,26,2024
+2024-07-03,N02,40,OAP,Top 2323,0.18,Mix,Cherry Rosa,27,2024
+2024-07-03,N02,40,OAP,Tymoty,0.612,Cherry,Cherry Rojo,27,2024
+2024-07-04,S29,6,SMB,Tymoty,0.6,Cherry,Cherry Rojo,27,2024
+2024-07-06,V01,37,VAP,King,0.4788,Uva,Uva Roja,27,2024
+2024-07-06,V01,37,VAP,Prince,0.4788,Uva,Uva Roja,27,2024
+2024-07-06,V01,38,VAP,Pera Amarilla Viv,0.02,Mix,Pera Amarilla,27,2024
+2024-07-06,V01,38,VAP,Pera Roja Viv,0.0998,Mix,Pera Roja,27,2024
+2024-07-06,V01,38,VAP,Prince,0.3392,Uva,Uva Roja,27,2024
+2024-07-06,V01,39,VAP,King,0.6337,Uva,Uva Roja,27,2024
+2024-07-06,V01,39,VAP,Prince,0.1748,Uva,Uva Roja,27,2024
+2024-07-06,V02,35,VAP,Tymoty,0.5198,Cherry,Cherry Rojo,27,2024
+2024-07-06,V09,30,VAP,Pera Amarilla Viv,0.18,Mix,Pera Amarilla,27,2024
+2024-07-06,V09,30,VAP,Top 2323,0.45,Mix,Cherry Rosa,27,2024
+2024-07-06,V09,30,VAP,Top 2417,0.12,Mix,Cherry Naranja,27,2024
+2024-07-06,V09,30,VAP,Yoyomo,0.45,Mix,Uva Amarilla,27,2024
+2024-07-06,V09,31,VAP,Tymoty,1.376,Cherry,Cherry Rojo,27,2024
+2024-07-06,V09,34,VAP,King,0.27,Uva,Uva Roja,27,2024
+2024-07-06,V09,34,VAP,Tymoty,1.08,Cherry,Cherry Rojo,27,2024
+2024-07-06,V09,35,VAP,Prince,1.14,Uva,Uva Roja,27,2024
+2024-07-06,V09,39,VAP,Prince,0.1748,Uva,Uva Roja,27,2024
+2024-07-08,S07,2,SFB,King,0.76,Uva,Uva Roja,28,2024
+2024-07-08,S07,2,SFB,Pera Roja Viv,0.02,Mix,Pera Roja,28,2024
+2024-07-08,S07,11,SFB,Pera Amarilla Viv,0.04,Mix,Pera Amarilla,28,2024
+2024-07-08,S07,11,SFB,Pera Roja Viv,0.1,Mix,Pera Roja,28,2024
+2024-07-08,S07,11,SFB,Top 2323,0.08,Mix,Cherry Rosa,28,2024
+2024-07-08,S07,11,SFB,Top 2417,0.08,Mix,Cherry Naranja,28,2024
+2024-07-08,S07,11,SFB,Yoyomo,0.16,Mix,Uva Amarilla,28,2024
+2024-07-08,S07,12,SFB,Tymoty,0.38,Cherry,Cherry Rojo,28,2024
+2024-07-13,S29,4,SMB,King,0.4,Uva,Uva Roja,28,2024
+2024-07-14,V02,40,VAP,Early Girl Classic,1.2384,Cherry,Cherry Rojo,28,2024
+2024-07-18,V02,33,VAP,King,0.152,Uva,Uva Roja,29,2024
+2024-07-18,V02,33,VAP,Prince,1.368,Uva,Uva Roja,29,2024
+2024-07-18,V02,33,VAP,Top 2323,0.8758,Mix,Cherry Rosa,29,2024
+2024-07-18,V02,33,VAP,Tymoty,0.532,Cherry,Cherry Rojo,29,2024
+2024-07-18,V02,33,VAP,Yoyomo,0.598,Mix,Uva Amarilla,29,2024
+2024-07-18,V02,34,VAP,King,0.3276,Uva,Uva Roja,29,2024
+2024-07-18,V02,37,VAP,King,0.0504,Uva,Uva Roja,29,2024
+2024-07-18,V02,37,VAP,King,0.63,Uva,Uva Roja,29,2024
+2024-07-18,V02,37,VAP,Prince,0.1134,Uva,Uva Roja,29,2024
+2024-07-18,V02,37,VAP,Tymoty,0.1764,Cherry,Cherry Rojo,29,2024
+2024-07-20,S29,2,SMB,Pera Amarilla Viv,0.08,Mix,Pera Amarilla,29,2024
+2024-07-20,S29,2,SMB,Pera Roja Viv,0.08,Mix,Pera Roja,29,2024
+2024-07-24,V02,8,VAP,Pera Amarilla Viv,0.3971,Mix,Pera Amarilla,30,2024
+2024-07-24,V02,8,VAP,Pera Roja Viv,0.2166,Mix,Pera Roja,30,2024
+2024-07-24,V02,8,VAP,Top 2417,0.1805,Mix,Cherry Naranja,30,2024
+2024-07-25,S12,4,SGB,Top 2323,0.153,Mix,Cherry Rosa,30,2024
+2024-07-25,S12,4,SGB,Yoyomo,0.102,Mix,Uva Amarilla,30,2024
+2024-07-29,S12,7,SGB,King,0.51,Uva,Uva Roja,31,2024
+2024-07-29,S12,8,SGB,King,0.0306,Uva,Uva Roja,31,2024
+2024-07-29,S12,8,SGB,Tymoty,0.3978,Cherry,Cherry Rojo,31,2024
