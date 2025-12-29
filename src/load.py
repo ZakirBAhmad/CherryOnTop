@@ -90,7 +90,7 @@ def collapse_table(table,idx_dict,col = 'class'):
 def create_idx_dict(production_plan):
     indices_dict = {'class':{},'ranch':{},'transplant_week':{}}
     # Populate indices_dict with the indices of production_plan for Class, Ranch, Type
-    for column in ['class', 'ranch', 'transplant_week']:
+    for column in ['class', 'ranch', 'transplant_week','year']:
         if column in production_plan.columns:
             unique_values = production_plan[column].unique()
             indices_dict[column] = {value: production_plan[column] == value for value in unique_values}

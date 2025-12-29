@@ -1,7 +1,8 @@
 import streamlit as st
 import sys
 import paths
-sys.path.insert(0, str(paths.ROOT))
+
+sys.path.append(str(paths.ROOT))
 
 import control.setup_session as setup_session
 setup_session.load_proper_data()
@@ -17,11 +18,9 @@ st.session_state['pw_tables'] = pw_tables
 st.title("Home")
 st.write("Welcome to the home page")
 
-st.title("Home")
-st.write("Welcome to the home page")
+st.title("Pages Overview")
+st.write(
+    "Historical: Shows current season compared to previous seasons\n \
+    This Seasn: Shows current season/projections over time\n \
+    This Week: Shows the projections for this upcoming week")
 
-st.title("Home")
-st.write("Welcome to the home page")
-
-st.title("Home")
-st.write("Welcome to the home page")

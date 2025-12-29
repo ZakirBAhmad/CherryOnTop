@@ -1,7 +1,19 @@
 import streamlit as st
+import src.graphs as graphs
+st.set_page_config(layout="wide")
 
 st.title("This Season")
-st.write("Welcome to the historical page")
+st.write("Welcome to the  page")
+
+szn_act_kg = st.session_state['data']['szn_act_kg']
+szn_adj_kg = st.session_state['data']['szn_adj_kg']
+
+st.write(szn_act_kg.shape)
+st.write(f"graphs module imported: {graphs}")
+
+graph = graphs.this_season_graph(szn_act_kg,szn_adj_kg)
+st.plotly_chart(graph)
+
 
 st.title("this season: 2024")
 st.write("week slider")

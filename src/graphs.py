@@ -14,6 +14,43 @@ def get_colors_sequence(name,n):
             return colors
     raise ValueError(f"Colorscale '{name}' not found in Plotly colors.")
 
+def this_season_graph(szn_act_kg,szn_adj_kg):
+    total_actuals = szn_act_kg.sum(axis=0)
+    total_preds = szn_adj_kg.sum(axis=0)
+
+    x_vals = np.arange(53)
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(x=x_vals, y=total_preds[0], mode='lines', name='Predicted', line={'color': 'red', 'dash': 'dash'}))
+    fig.add_trace(go.Bar(x=x_vals[1:], y=total_actuals[1:], marker_color='black',opacity=0.5,showlegend=False))
+    fig.add_trace(go.Bar(x=x_vals[:1], y=total_actuals[:1], marker_color='black',name='Actuals'))
+
+    fig.add_vline(x=0, line_width=2, line_dash="dot", line_color="black", annotation_text="Current", annotation_position="top right")
+
+    steps = []
+    for i in range(51):
+        step = dict(
+            method="update",
+            args=[
+                {
+                    "x": [x_vals,x_vals[i:],x_vals[:i]],
+                    "y": [total_preds[i],total_actuals[i:],total_actuals[:i]]
+                },
+                {"shapes[0].x0": i, "shapes[0].x1": i}  # move vline
+                ],
+            label=f"Day {i+1}")
+        steps.append(step)
+
+    sliders = [dict(
+        active=0,
+        currentvalue={"prefix": "Day: "},
+        pad={"t": 50},
+        steps=steps
+    )]
+
+    fig.update_layout(sliders=sliders)
+    return fig
+
 def plot_season(actuals,predictions,classes,color_name):
     c_scale = get_colors_sequence(color_name,len(classes))
     total_actuals  = actuals.sum(axis=0)

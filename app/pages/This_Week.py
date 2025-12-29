@@ -2,7 +2,6 @@ import streamlit as st
 import src.table as table
 st.set_page_config(layout="wide")
 
-st.write("to do: prediction adjustment graphs for each week, mask for what batches are actually active. group table by week transplanted")
 value = st.slider("Current Weeks", min_value=0, max_value=51, value=20)
 
 st.title(f"Week {value}")
