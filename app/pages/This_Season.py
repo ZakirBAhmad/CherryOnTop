@@ -9,7 +9,6 @@ szn_act_kg = st.session_state['data']['szn_act_kg']
 szn_adj_kg = st.session_state['data']['szn_adj_kg']
 
 st.write(szn_act_kg.shape)
-st.write(f"graphs module imported: {graphs}")
 
 graph = graphs.this_season_graph(szn_act_kg,szn_adj_kg)
 st.plotly_chart(graph)
