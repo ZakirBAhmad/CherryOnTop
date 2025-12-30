@@ -1,3 +1,4 @@
+from this import d
 import plotly.graph_objects as go
 import plotly.colors as pc
 import numpy as np
@@ -49,6 +50,133 @@ def this_season_graph(szn_act_kg,szn_adj_kg):
     )]
 
     fig.update_layout(sliders=sliders)
+    return fig
+
+def season_act_graph(h_meta,szn_hist_kg,idx,label):
+
+    szn_len = szn_hist_kg.shape[1]
+
+    meta = h_meta[idx]
+
+
+    by_t_week = meta.groupby('transplant_week').agg({'ha':'sum','total_kg':'sum'})
+    by_t_week['yield'] = by_t_week['total_kg'] / by_t_week['ha']
+
+    kg  = szn_hist_kg[idx]
+    df = pd.DataFrame(kg)
+    df['transplant_week'] = meta.transplant_week.values
+
+    kg_by_t_week = df.groupby('transplant_week').sum()
+    total_kg = kg_by_t_week.sum(axis=0)
+
+    # Create a subplots figure with 2 rows, 1 column
+    fig = make_subplots(rows=2, cols=1)
+
+    # --- Bottom subplot: Hectares planted per transplant week ---
+
+    # Bar trace for hectares planted per transplant week
+    fig.add_trace(
+        go.Bar(
+            x=by_t_week.index,                # x-axis: transplant weeks
+            y=by_t_week['ha'],                # y-axis: hectares planted
+            marker_color='lightblue',              # color for bars
+            name='Ha Planted'                      # legend label
+        ),
+        row=2, col=1
+    )
+
+    # Bar trace for highlighted week (initially the first bar)
+    highlight_color = 'crimson'                    # Color for highlighting
+    highlight_idx = 0                              # Start with the first week highlighted
+    highlight_y = [ha if i == highlight_idx else 0 for i, ha in enumerate(by_t_week['ha'])]
+
+    fig.add_trace(
+        go.Bar(
+            x=by_t_week.index,                # x-axis: transplant weeks
+            y=highlight_y,                         # y: only the highlighted bar has value, rest are zero
+            marker_color=highlight_color,          # highlighted color
+            name='Highlighted',                    # legend label
+            showlegend=False                       # don't repeat in legend
+        ),
+        row=2, col=1
+    )
+
+    # --- Top subplot: Fruit kg per week & highlight ---
+
+    # Line trace for total kg per week (shows season curve)
+    fig.add_trace(
+        go.Scatter(
+            x=np.arange(szn_len),                  # x-axis: week numbers (index)
+            y=total_kg,                       # y-axis: total fruit kg per week
+            mode='lines',
+            name='Total kg'
+        ),
+        row=1, col=1
+    )
+
+    # Bar trace for kg by harvest week for the initially highlighted transplant week
+    fig.add_trace(
+        go.Bar(
+            x=np.arange(szn_len),
+            y=kg_by_t_week.iloc[0],           # kg data for first transplant week
+            marker_color=highlight_color,
+            name='Highlighted Week'
+        ),
+        row=1, col=1
+    )
+
+    # Dummy bar trace (zeros in bottom plot) for dynamic updating with slider
+    fig.add_trace(
+        go.Bar(
+            x=np.arange(szn_len),
+            y=np.zeros(szn_len),                   # all zeros (used for updates)
+            showlegend=False
+        ),
+        row=2, col=1
+    )
+
+    # --- Build slider steps for interactive highlight ---
+
+    steps = []
+    for i, week in enumerate(by_t_week.index):
+        # Build the highlight mask for the current week
+        highlight_y = [ha if j == i else 0 for j, ha in enumerate(by_t_week['ha'])]
+        # On step, update y-values for all corresponding traces:
+        #   [ha bars, highlight bar mask, total_kg line, highlighted week kg, filler zeros]
+        step = {
+            "method": "update",
+            "args": [
+                {
+                    "y": [
+                        by_t_week['ha'],                         # Ha planted bars (static)
+                        highlight_y,                                        # Highlight mask for bar
+                        total_kg,                                      # Total kg per week (static)
+                        kg_by_t_week.loc[week].values,           # Highlighted week kg (dynamic)
+                        np.zeros(szn_len)                                   # Filler all zeros bar (static)
+                    ]
+                }
+            ],
+            "label": str(week)  # label slider step with transplant_week
+        }
+        steps.append(step)
+
+    # Define slider UI configuration
+    sliders = [{
+        "active": 0,
+        "currentvalue": {"prefix": "transplant_week: "},
+        "pad": {"t": 30},
+        "steps": steps
+    }]
+
+    # Update layout with slider and bar mode
+    fig.update_layout(
+        sliders=sliders,
+        barmode='overlay',
+        title=label,
+        yaxis={'title':'Kg'},
+        yaxis2={'title':'Ha'}
+    )
+
     return fig
 
 def plot_season(actuals,predictions,classes,color_name):
