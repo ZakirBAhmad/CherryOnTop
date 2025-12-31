@@ -41,13 +41,18 @@ def load_proper_data():
 
     season_init_kg = szn_adj_kg[:,0]
 
+    h_meta, h_y, ht_weeks, h_idx_dict, h_total_kg = load.load_historical_data()
+
     st.session_state['data'] = {
         'szn_adj_kg': szn_adj_kg,
         'szn_act_kg': szn_act_kg,
         'idx_dict': idx_dict,
-        'szn_init_kg': season_init_kg}
-
-
+        'szn_init_kg': season_init_kg,
+        'h_meta': h_meta,
+        'h_y': h_y,
+        'ht_weeks': ht_weeks,
+        'h_idx_dict': h_idx_dict,
+        'h_total_kg': h_total_kg}
 
 def pred_evolution_graphs():
     szn_adj_kg = st.session_state['data']['szn_adj_kg']

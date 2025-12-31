@@ -38,6 +38,15 @@ def get_season_actuals(actual_kg, actual_sched,transplant_weeks):
     season_actual_kg = season_shift(transplant_weeks,actual_kg)
     return season_actual_sched, season_actual_kg
 
+def load_historical_data():
+    h_meta = pd.read_csv(paths.HISTORICAL / 'meta.csv')
+    h_y = pd.read_csv(paths.HISTORICAL / 'y.csv',header=None)
+    ht_weeks = h_meta.transplant_week.values
+    h_idx_dict = create_idx_dict(h_meta)
+    h_total_kg = h_y.sum(axis=1)
+    h_meta['total_kg'] = h_total_kg
+    return h_meta, h_y, ht_weeks, h_idx_dict, h_total_kg
+
 def get_season_adj_kg(season_init_kg,adj_kg,transplant_weeks):
 
     max_shift = transplant_weeks.max()
