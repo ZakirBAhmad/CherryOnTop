@@ -21,6 +21,6 @@ st.write("Welcome to the home page")
 st.title("Pages Overview")
 st.write(
     "Historical: Shows current season compared to previous seasons\n \
-    This Seasn: Shows current season/projections over time\n \
+    This Season: Shows current season/projections over time\n \
     This Week: Shows the projections for this upcoming week")
 

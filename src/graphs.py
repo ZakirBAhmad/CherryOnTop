@@ -1,4 +1,3 @@
-from this import d
 import plotly.graph_objects as go
 import plotly.colors as pc
 import numpy as np
@@ -34,8 +33,8 @@ def this_season_graph(szn_act_kg,szn_adj_kg):
             method="update",
             args=[
                 {
-                    "x": [x_vals,x_vals[i:],x_vals[:i]],
-                    "y": [total_preds[i],total_actuals[i:],total_actuals[:i]]
+                    "x": [x_vals,x_vals[i+1:],x_vals[:i+1]],
+                    "y": [total_preds[i],total_actuals[i+1:],total_actuals[:i+1]]
                 },
                 {"shapes[0].x0": i, "shapes[0].x1": i}  # move vline
                 ],
@@ -48,6 +47,80 @@ def this_season_graph(szn_act_kg,szn_adj_kg):
         pad={"t": 50},
         steps=steps
     )]
+
+    fig.update_layout(sliders=sliders)
+    return fig
+
+def this_season_CI_graph(preds,season_act):
+
+    actuals = season_act.sum(axis=0)
+
+    upper_preds = preds['upper'].sum(axis=0)
+    upper_mid_preds = preds['upper_mid'].sum(axis=0)
+    mean_preds = preds['mean'].sum(axis=0)
+    lower_mid_preds = preds['lower_mid'].sum(axis=0)
+    lower_preds = preds['lower'].sum(axis=0)
+
+    O = mean_preds.shape[-1]
+    x_vals = np.arange(O)
+    in_CI = np.concatenate([upper_mid_preds, lower_mid_preds[...,::-1]],axis=1)
+    out_CI = np.concatenate([upper_preds, lower_preds[...,::-1]],axis=1)
+    interval_x = np.concatenate([x_vals, x_vals[::-1]])
+
+    fig = go.Figure()
+
+    # pred trace
+    fig.add_trace(go.Scatter(x=x_vals, y=mean_preds[0], mode='lines', name='Predicted', line={'color': 'red', 'dash': 'dash'}))
+
+    # inner interval trace
+    fig.add_trace(go.Scatter(
+        x=interval_x,
+        y=in_CI[0],
+        fill='toself',
+        fillcolor='rgba(255, 105, 180, 0.3)',
+        line={'color': 'rgba(255, 105, 180, 0)'},
+        hoverinfo='skip',
+        showlegend=True,
+        name='Inner Interval'
+    ))
+
+    # outer interval trace
+    fig.add_trace(go.Scatter(
+        x=interval_x,
+        y=out_CI[0],
+        fill='toself',
+        fillcolor='rgba(255, 182, 193, 0.3)',
+        line={'color': 'rgba(255, 182, 193, 0)'},
+        hoverinfo='skip',
+        showlegend=True,
+        name='Outer Interval'
+    ))
+
+    fig.add_trace(go.Bar(x=x_vals[1:], y=actuals[1:], marker_color='black',opacity=0.5,showlegend=False))
+    fig.add_trace(go.Bar(x=x_vals[:1], y=actuals[:1], marker_color='black',name='Actuals'))
+
+    fig.add_vline(x=0, line_width=2, line_dash="dot", line_color="black", annotation_text="Current", annotation_position="top right")
+
+    steps = []
+    for i in range(51):
+        step = {
+            "method":"update",
+            "args":[
+                {
+                    "x": [x_vals,interval_x,interval_x,x_vals[i+1:],x_vals[:i+1]],
+                    "y": [mean_preds[i],in_CI[i],out_CI[i],actuals[i+1:],actuals[:i+1]]
+                },
+                {"shapes[0].x0": i, "shapes[0].x1": i}  # move vline
+                ],
+            "label":f"Day {i+1}"}
+        steps.append(step)
+
+    sliders = [{
+        "active":0,
+        "currentvalue":{"prefix": "Day: "},
+        "pad":{"t": 50},
+        "steps":steps
+    }]
 
     fig.update_layout(sliders=sliders)
     return fig
@@ -177,6 +250,131 @@ def season_act_graph(h_meta,szn_hist_kg,idx,label):
         yaxis2={'title':'Ha'}
     )
 
+    return fig
+
+def kg_ha_graph(meta,title):
+    kg = meta['total_kg']
+    ha = meta['ha']
+    total_yield = kg.sum() / ha.sum()
+    max_ha = ha.max()
+    min_ha = ha.min()
+
+    max_kg = kg.max()
+    min_kg = kg.min()
+
+    fig = go.Figure()
+
+    fig.add_shape(
+    type="line",
+    x0=min_ha,
+    x1=max_ha,
+    y0=min_kg,
+    y1=max_kg,
+    line={"color": "red", "width": 2, "dash": "dash"},
+    xref="x",
+    yref="y"
+    )
+    fig.add_annotation(
+        x=max_ha,
+        y=max_kg,
+        text=f"Total Yield: {total_yield:.2f}",
+        showarrow=False,
+        yanchor="bottom",
+        xanchor="right",
+        font={"color": "red"},
+        bgcolor="white",
+        bordercolor="red",
+        borderpad=3
+    )
+        
+    fig.add_trace(go.Scatter(
+        x=ha,
+        y=kg,
+        mode='markers',
+        marker={
+            "size": (kg / kg.max() * 20 + 5).tolist(),  # scale sizes
+            "opacity": 0.5
+        }
+    ))
+
+    fig.update_layout(
+        title=title,
+        xaxis_title='Ha',
+        yaxis_title='Kg',
+        showlegend=False
+    )  
+    return fig
+
+def yield_breakdown_graph(meta,title,col, categorical = False,mappings = None):
+    meta = meta.copy()
+    if categorical:
+        assert mappings is not None, "mappings must be provided for categorical data"
+        meta[col] = meta[col].map(mappings[col])
+
+    x_vals = meta[col].values + np.random.uniform(-0.2, 0.2, size=len(meta))
+    y_vals = meta['yield']
+    kg = meta['total_kg']
+    ha = meta['ha']
+    total_yield = kg.sum() / ha.sum()
+
+    grouped = meta.groupby(col).sum()
+    grouped['yield'] = grouped['total_kg'] / grouped['ha']
+    unique_subgroups = grouped.index.values
+    subgroup_yields = grouped['yield'].values
+
+    fig = go.Figure()
+
+    #kg for each ranch
+    fig.add_trace(go.Scatter(
+        x=x_vals,
+        y=y_vals,
+        mode='markers',
+        marker={
+            "size": (kg / kg.max() * 10 + 5).tolist(),  # scale sizes
+            "opacity": 0.5
+        }
+    ))
+
+    #total yield line
+    fig.add_hline(
+        y=total_yield,
+        line_dash="dash",
+        line_color="black",
+        annotation_text=f"Total yield: {total_yield:,.1f} kg/ha",
+        annotation_position="top right",
+        annotation_font_size=12,
+        annotation_font_color="black"
+    )
+
+    if categorical:
+        fig.add_trace(go.Bar(
+            x=unique_subgroups,
+            y=subgroup_yields,
+            name='Average yield per ' + col,
+            marker_color='pink',
+            opacity=0.5
+        ))
+    else:
+        fig.add_trace(go.Scatter(
+            x=unique_subgroups,
+            y=subgroup_yields,
+            mode='lines',
+            line={'color': 'red'},
+            name='Yield per ' + col
+        ))
+
+    fig.update_layout(
+        title=title,
+        xaxis_title=col,
+        yaxis_title='Yield (kg/ha)'
+    )
+    if categorical:
+        fig.update_layout(
+        xaxis = {
+            "ticktext": list(mappings[col].keys()),
+            "tickvals": list(mappings[col].values()),
+        }
+    )
     return fig
 
 def plot_season(actuals,predictions,classes,color_name):

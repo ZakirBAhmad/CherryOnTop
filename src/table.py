@@ -1,41 +1,41 @@
 import numpy as np
 import pandas as pd
 
-def season_math(kg_preds,act_kg,transplant_weeks):
+def shift_preds(preds:np.ndarray, transplant_weeks:np.ndarray):
+    """
+    Vectorized version: Shifts predictions from (week after transplant, week of harvest after transplant) 
+    to (week of the season, week of the season).
+    For each batch n, both dimensions are shifted by transplant_week[n].
+    Instead of zero-padding, extends by nearest prediction (edge padding).
+    """
+    N, wat, woh = preds.shape
 
-    N = len(kg_preds)
+    max_shift = transplant_weeks.max()
+    out_shape = (N, wat + max_shift, woh + max_shift)
 
-    season_preds = np.zeros((N, 51, 71), dtype=kg_preds.dtype)
+    # Create coordinates for output grid
+    i = np.arange(out_shape[1])[None, :, None]
+    j = np.arange(out_shape[2])[None, None, :]
 
-    n_idx = np.arange(N)[:, None, None]      # (N,1,1)
-    t_idx = np.arange(20)[None, :, None]     # (1,20,1)
-    k_idx = np.arange(40)[None, None, :]     # (1,1,40)
+    # Convert to np.ndarray for safe broadcasting
+    tw = transplant_weeks[:, None, None]
 
-    tw = transplant_weeks[:, None, None]     # (N,1,1)
+    # Gather predictions using advanced indexing
+    out = preds[np.arange(N)[:, None, None], np.clip(i - tw, 0, wat - 1), np.clip(j - tw, 0, woh - 1)]
 
-    i_idx = tw + t_idx   # (N,20,1)
-    j_idx = tw + k_idx   # (N,1,40)
+    return out
 
-    season_preds[n_idx, i_idx, j_idx] = kg_preds
+def shift_actuals(actuals:np.ndarray, transplant_weeks:np.ndarray):
+    """
+    Shift the actuals based on the transplant days.
+    """
+    max_shift = transplant_weeks.max()
+    N, O = actuals.shape
+    out = np.zeros((N, O + max_shift), dtype=actuals.dtype)
 
-    actuals_season = np.zeros((N, 71), dtype=act_kg.dtype)
-
-    k = np.arange(40)[None, :]                 # (1,40)
-    j_idx = transplant_weeks[:, None] + k      # (N,40)
-
-    actuals_season[np.arange(N)[:, None], j_idx] = act_kg
-
-    i = np.arange(51)[None, :, None]  # (1,51,1)
-    j = np.arange(71)[None, None, :]  # (1,1,71)
-
-    known_mask = j <= i               # (1,51,71)
-
-    season_kg = np.where(
-        known_mask,
-        actuals_season[:, None, :],
-        season_preds
-    )
-    return season_kg, actuals_season
+    indices = (np.arange(N)[:, None], np.arange(O)[None, :] + transplant_weeks[:, None])
+    np.add.at(out, indices, actuals)
+    return out
 
 
 def collapse_table(table,idx_dict):
@@ -45,18 +45,7 @@ def collapse_table(table,idx_dict):
         ]
     )
 
-def season_shift(table,transplant_weeks):
-    """
-    Shift the actuals based on the transplant days.
-    """
-    max_shift = transplant_weeks.max()
-    N,O = table.shape
-    out_shape = (N, O + max_shift)
-    out = np.zeros(out_shape, dtype=table.dtype)
-    indices = (np.arange(N)[:, None], np.arange(O)[None, :] + transplant_weeks
-    [:, None])
-    np.add.at(out, indices, table)
-    return out
+
 
 def week_class_table(this_week,c,szn_adj_kg,szn_act_kg,idx_dict):
     """
