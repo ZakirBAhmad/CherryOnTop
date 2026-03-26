@@ -51,15 +51,15 @@ def this_season_graph(szn_act_kg,szn_adj_kg):
     fig.update_layout(sliders=sliders)
     return fig
 
-def this_season_CI_graph(preds,season_act):
+def this_season_CI_graph(preds,season_act,title):
 
     actuals = season_act.sum(axis=0)
 
-    upper_preds = preds['upper'].sum(axis=0)
-    upper_mid_preds = preds['upper_mid'].sum(axis=0)
-    mean_preds = preds['mean'].sum(axis=0)
-    lower_mid_preds = preds['lower_mid'].sum(axis=0)
-    lower_preds = preds['lower'].sum(axis=0)
+    lower_preds = preds[...,0].sum(axis=0)
+    lower_mid_preds = preds[...,1].sum(axis=0)
+    mean_preds = preds[...,2].sum(axis=0)
+    upper_mid_preds = preds[...,3].sum(axis=0)
+    upper_preds = preds[...,4].sum(axis=0)
 
     O = mean_preds.shape[-1]
     x_vals = np.arange(O)
@@ -122,7 +122,7 @@ def this_season_CI_graph(preds,season_act):
         "steps":steps
     }]
 
-    fig.update_layout(sliders=sliders)
+    fig.update_layout(sliders=sliders, title=title)
     return fig
 
 def season_act_graph(h_meta,szn_hist_kg,idx,label):
