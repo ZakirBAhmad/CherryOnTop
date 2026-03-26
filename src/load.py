@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import app.paths as paths
+import src.table as table
 import json
 
 def load_preds():
@@ -26,7 +27,6 @@ def load_historical_data():
     total_kg = y.sum(axis=1)
     meta['total_kg'] = total_kg
     return meta, y, t_weeks, idx_dict, total_kg
-
 
 def collapse_table(table,idx_dict,col = 'class'):
     return np.stack(

@@ -5,14 +5,13 @@ import paths
 sys.path.append(str(paths.ROOT))
 
 import control.setup_session as setup_session
-setup_session.load_proper_data()
 
-st.write(paths.HISTORICAL)
-pe_graphs = setup_session.pred_evolution_graphs()
-pw_tables = setup_session.preds_by_week_tables()
-
-st.session_state['pe_graphs'] = pe_graphs
-st.session_state['pw_tables'] = pw_tables
+setup_session.load_data()
+st.write('loaded data')
+setup_session.load_historical_data()
+st.write('loaded historical data')
+setup_session.load_mappings()
+st.write('loaded mappings')
 
 
 st.title("Home")

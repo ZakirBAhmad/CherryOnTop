@@ -66,6 +66,24 @@ def class_prediction_history(preds, szn_act, c, idx_dict):
     df_final = pd.concat([actuals_row, df])
     return df_final
 
+def create_fake_preds(c_preds,r_preds,meta,y):
+    transplant_weeks = meta.transplant_week.values
+    szn_c = shift_preds(c_preds,transplant_weeks)
+    szn_r = shift_preds(r_preds,transplant_weeks)
+    szn_act = shift_actuals(y,transplant_weeks)
+    diff = 2 * (szn_c - szn_r)
+    upper_preds = szn_c + diff
+    lower_preds = szn_r - diff
+    preds = np.stack([szn_c, szn_r,upper_preds,lower_preds],axis=-1)
+    upper = np.max(preds,axis=-1)
+    lower = np.min(preds,axis=-1)
+    std_dev = np.std(preds,axis=-1) / preds.shape[-1]**0.5
+    mean = np.mean(preds,axis=-1)
+    upper_mid = mean + std_dev
+    lower_mid = mean - std_dev
+    final_preds = np.stack([lower,lower_mid,mean,upper_mid,upper],axis=-1)
+    return final_preds, szn_act
+
 
 def week_class_table(this_week,c,szn_adj_kg,szn_act_kg,idx_dict):
     """
