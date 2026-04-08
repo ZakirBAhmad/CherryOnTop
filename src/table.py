@@ -8,10 +8,10 @@ def shift_preds(preds:np.ndarray, transplant_weeks:np.ndarray):
     For each batch n, both dimensions are shifted by transplant_week[n].
     Instead of zero-padding, extends by nearest prediction (edge padding).
     """
-    N, wat, woh = preds.shape
+    N, wat, woh, n_preds = preds.shape
 
     max_shift = transplant_weeks.max()
-    out_shape = (N, wat + max_shift, woh + max_shift)
+    out_shape = (N, wat + max_shift, woh + max_shift, n_preds)
 
     # Create coordinates for output grid
     i = np.arange(out_shape[1])[None, :, None]
@@ -21,7 +21,7 @@ def shift_preds(preds:np.ndarray, transplant_weeks:np.ndarray):
     tw = transplant_weeks[:, None, None]
 
     # Gather predictions using advanced indexing
-    out = preds[np.arange(N)[:, None, None], np.clip(i - tw, 0, wat - 1), np.clip(j - tw, 0, woh - 1)]
+    out = preds[np.arange(N)[:, None, None], np.clip(i - tw, 0, wat - 1), np.clip(j - tw, 0, woh - 1),:]
 
     return out
 
@@ -47,22 +47,22 @@ def collapse_table(table,idx_dict):
 
 def class_prediction_history(preds, szn_act, c, idx_dict):
     idx = idx_dict['class'][c]
-    mask = np.triu(np.ones((56,56), dtype=bool), k=1)
-    summed_preds = preds[idx].sum(axis=0)
+    mask = np.triu(np.ones((63,63), dtype=bool), k=1)
+    summed_preds = np.nansum(preds[idx],axis=0)
     summed_preds[~mask] = np.nan
     summed_preds = summed_preds[::-1, :]
-    summed_preds = summed_preds.reshape(56,280)
+    summed_preds = summed_preds.reshape(63,63*5)
     mask = ~np.isnan(summed_preds)
     order = np.argsort(~mask, axis=0,kind = 'stable')
     result = np.take_along_axis(summed_preds, order, axis=0)
-    layered_cols = pd.MultiIndex.from_product([np.arange(0,56), ['lower', 'lower_mid', 'mean', 'upper_mid', 'upper']])
+    layered_cols = pd.MultiIndex.from_product([np.arange(0,63), ['lower', 'lower_mid', 'mean', 'upper_mid', 'upper']])
     df = pd.DataFrame(result, columns=layered_cols)
     actuals_row = pd.DataFrame(
         np.nan,
         index=['actuals'],
         columns=df.columns
     )
-    actuals_row.loc['actuals', (slice(None), 'mean')] = szn_act[idx].sum(axis=0)[:56]
+    actuals_row.loc['actuals', (slice(None), 'mean')] = szn_act[idx].sum(axis=0)[:63]
     df_final = pd.concat([actuals_row, df])
     return df_final
 

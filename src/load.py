@@ -5,9 +5,8 @@ import src.table as table
 import json
 
 def load_preds():
-    c_preds = np.load(paths.PREDS / 'c_preds.npz')['arr_0']
-    r_preds = np.load(paths.PREDS / 'r_preds.npz')['arr_0']
-    return c_preds, r_preds
+    final_preds = np.load(paths.PREDS / 'final_preds.npz')['arr_0']
+    return final_preds
 
 def load_actuals():
     meta = pd.read_csv(paths.PREDS / 'meta.csv')

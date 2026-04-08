@@ -3,10 +3,13 @@ import streamlit as st
 import src.table as table
 
 def load_data():
-    c_preds, r_preds = load.load_preds()
+    batch_preds = load.load_preds()
+    
     meta,y = load.load_actuals()
     idx_dict = load.create_idx_dict(meta)
-    final_preds, szn_act = table.create_fake_preds(c_preds,r_preds,meta,y)
+    transplant_weeks = meta['transplant_week'].values
+    final_preds = table.shift_preds(batch_preds,transplant_weeks)
+    szn_act = table.shift_actuals(y,transplant_weeks)
 
     st.session_state['current_data'] = {
         'meta': meta,

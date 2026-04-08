@@ -55,11 +55,11 @@ def this_season_CI_graph(preds,season_act,title):
 
     actuals = season_act.sum(axis=0)
 
-    lower_preds = preds[...,0].sum(axis=0)
-    lower_mid_preds = preds[...,1].sum(axis=0)
-    mean_preds = preds[...,2].sum(axis=0)
-    upper_mid_preds = preds[...,3].sum(axis=0)
-    upper_preds = preds[...,4].sum(axis=0)
+    lower_preds = np.nansum(preds[...,0],axis=0)
+    lower_mid_preds = np.nansum(preds[...,1],axis=0)
+    mean_preds = np.nansum(preds[...,2],axis=0)
+    upper_mid_preds = np.nansum(preds[...,3],axis=0)
+    upper_preds = np.nansum(preds[...,4],axis=0)
 
     O = mean_preds.shape[-1]
     x_vals = np.arange(O)
