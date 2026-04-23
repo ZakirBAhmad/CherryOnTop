@@ -127,3 +127,9 @@ def frame_table(preds_by_week, kg_so_far, idx_dict, this_week, window = 5):
 
     df1['Percent'] = df1['KgSoFar'] / (df1['Total_Projected'] + 1e-8)
     return df1
+
+def highlight_row():
+    pass
+
+def highlight_column():
+    pass

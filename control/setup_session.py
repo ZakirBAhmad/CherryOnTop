@@ -1,6 +1,8 @@
 import src.load as load
 import streamlit as st
 import src.table as table
+import src.graphs_new as graphs
+import src.graphs_calc as calc
 
 def load_data():
     batch_preds = load.load_preds()
@@ -33,26 +35,3 @@ def load_historical_data():
 def load_mappings():
     mappings = load.load_mappings()
     st.session_state['mappings'] = mappings
-# def pred_evolution_graphs():
-#     szn_adj_kg = st.session_state['data']['szn_adj_kg']
-#     szn_act_kg = st.session_state['data']['szn_act_kg']
-#     szn_init_kg = st.session_state['data']['szn_init_kg']
-#     idx_dict = st.session_state['data']['idx_dict']
-
-#     graphs = {str(week): graph.pred_evolution(week,szn_act_kg,szn_init_kg,szn_adj_kg,idx_dict) for week in range(52)}
-#     return graphs
-
-# def preds_by_week_tables():
-#     szn_adj_kg = st.session_state['data']['szn_adj_kg']
-#     szn_act_kg = st.session_state['data']['szn_act_kg']
-#     idx_dict = st.session_state['data']['idx_dict']
-
-#     tables = {}
-#     for i in range(51):
-#         this_week = i
-#         row = {}
-#         for c in idx_dict['class'].keys():
-#             preds_by_week, kg_so_far = table.week_class_table(this_week,c,szn_adj_kg,szn_act_kg,idx_dict)
-#             row[c] = preds_by_week, kg_so_far
-#         tables[str(i)] = row
-#     return tables

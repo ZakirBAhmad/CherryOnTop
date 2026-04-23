@@ -19,7 +19,7 @@ total_kg = st.session_state['historical_data']['total_kg']
 ##### 2023 #####
 st.title("2023")
 
-szn_act = table.shift_actuals(y.values,t_weeks)
+szn_act = table.shift_actuals(y,t_weeks)
 year = 2023
 idx = idx_dict['year'][year]
 fig2023 = graphs.season_act_graph(meta,szn_act,idx,'2023')
@@ -35,7 +35,7 @@ st.dataframe(ha_table)
 ##### 2022 #####
 st.title("2022")
 
-szn_act = table.shift_actuals(y.values,t_weeks)
+szn_act = table.shift_actuals(y,t_weeks)
 year = 2022
 idx = idx_dict['year'][year]
 fig2022 = graphs.season_act_graph(meta,szn_act,idx,'2022')
@@ -51,7 +51,7 @@ st.dataframe(ha_table)
 ##### 2021 #####
 st.title("2021")
 
-szn_act = table.shift_actuals(y.values,t_weeks)
+szn_act = table.shift_actuals(y,t_weeks)
 year = 2021
 idx = idx_dict['year'][year]
 fig2021 = graphs.season_act_graph(meta,szn_act,idx,'2021')
@@ -67,7 +67,7 @@ st.dataframe(ha_table)
 ##### 2020 #####
 st.title("2020")
 
-szn_act = table.shift_actuals(y.values,t_weeks)
+szn_act = table.shift_actuals(y,t_weeks)
 year = 2020
 idx = idx_dict['year'][year]
 fig2020 = graphs.season_act_graph(meta,szn_act,idx,'2020')
@@ -84,7 +84,7 @@ st.dataframe(ha_table)
 ##### 2019 #####
 st.title("2019")
 
-szn_act = table.shift_actuals(y.values,t_weeks)
+szn_act = table.shift_actuals(y,t_weeks)
 year = 2019
 idx = idx_dict['year'][year]
 fig2019 = graphs.season_act_graph(meta,szn_act,idx,'2019')
@@ -100,7 +100,7 @@ st.dataframe(ha_table)
 ##### 2018 #####
 st.title("2018")
 
-szn_act = table.shift_actuals(y.values,t_weeks)
+szn_act = table.shift_actuals(y,t_weeks)
 year = 2018
 idx = idx_dict['year'][year]
 fig2018  = graphs.season_act_graph(meta,szn_act,idx,'2018')
@@ -116,7 +116,7 @@ st.dataframe(ha_table)
 ##### 2017 #####
 st.title("2017")
 
-szn_act = table.shift_actuals(y.values,t_weeks)
+szn_act = table.shift_actuals(y,t_weeks)
 year = 2017
 idx = idx_dict['year'][year]
 fig2017 = graphs.season_act_graph(meta,szn_act,idx,'2017')
@@ -132,7 +132,7 @@ st.dataframe(ha_table)
 ##### 2016 #####
 st.title("2016")
 
-szn_act = table.shift_actuals(y.values,t_weeks)
+szn_act = table.shift_actuals(y,t_weeks)
 year = 2016
 idx = idx_dict['year'][year]
 fig2016 = graphs.season_act_graph(meta,szn_act,idx,'2016')
@@ -148,7 +148,7 @@ st.dataframe(ha_table)
 ##### 2015 #####
 st.title("2015")
 
-szn_act = table.shift_actuals(y.values,t_weeks)
+szn_act = table.shift_actuals(y,t_weeks)
 year = 2015
 idx = idx_dict['year'][year]
 fig2015 = graphs.season_act_graph(meta,szn_act,idx,'2015')

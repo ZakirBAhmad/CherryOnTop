@@ -38,18 +38,20 @@ def sliding_transplant(year,tomato_class,meta, y, idx_dict):
         'szn_yield': by_t_week['yield'].values
     }, kg_by_transplant_week, by_t_week
 
-def sliding_transplant_projected(final_preds,szn_act):
+def sliding_transplant_projected(final_preds,tomato_class,idx_dict,szn_act):
+    idx = idx_dict['class'][tomato_class]
+    class_preds = final_preds[idx]
     data = {}
-    lower_preds = np.nansum(final_preds[...,0],axis=0)
-    lower_mid_preds = np.nansum(final_preds[...,1],axis=0)
-    mean_preds = np.nansum(final_preds[...,2],axis=0)
-    upper_mid_preds = np.nansum(final_preds[...,3],axis=0)
-    upper_preds = np.nansum(final_preds[...,4],axis=0)
+    lower_preds = np.nansum(class_preds[...,0],axis=0)
+    lower_mid_preds = np.nansum(class_preds[...,1],axis=0)
+    mean_preds = np.nansum(class_preds[...,2],axis=0)
+    upper_mid_preds = np.nansum(class_preds[...,3],axis=0)
+    upper_preds = np.nansum(class_preds[...,4],axis=0)
 
     O = mean_preds.shape[-1]
 
     data['mean_preds'] = mean_preds
-    data['actuals'] = szn_act.sum(axis=0)
+    data['actuals'] = szn_act[idx].sum(axis=0)
     data['szn_x'] = np.arange(O)
     data['in_CI'] = np.concatenate([upper_mid_preds, lower_mid_preds[...,::-1]],axis=1)
     data['out_CI'] = np.concatenate([upper_preds, lower_preds[...,::-1]],axis=1)
