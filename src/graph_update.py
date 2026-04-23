@@ -129,3 +129,217 @@ def kg_ha_projected(fig,data,week):
         ]
     )
     return fig
+
+def transplant_week_yield_projected(fig,df,preds,actuals,week):
+    kg_so_far = actuals[:,:week].sum(axis=1)
+    rkg = preds[:,week]
+    total_kg = kg_so_far + rkg
+    ha = df['ha'].values
+    df['total_kg'] = total_kg
+
+    average_yield_per_week = df.groupby('transplant_week')['total_kg'].sum() / df.groupby('transplant_week')['ha'].sum()
+
+    yield_so_far = kg_so_far / ha
+    predicted_yield = total_kg / ha
+
+    total_predicted_yield = total_kg.sum() / ha.sum()
+
+    kg_pairs_nan = np.array([[yield_so_far[i], predicted_yield[i], np.nan] for i in range(len(kg_so_far))]).flatten()
+
+    fig.update_traces(
+        y = yield_so_far,
+        marker = {'size': (kg_so_far/total_kg.max()*20 + 5)},
+        selector = {'name': 'Yield So Far'}
+    )
+
+    fig.update_traces(
+        y = predicted_yield,
+        marker = {'size': (total_kg/total_kg.max()*20 + 5)},
+        selector = {'name': 'Projected Yield'}
+    )
+
+    fig.update_traces(
+        y = kg_pairs_nan,
+        selector = {'name': 'Connectors'}
+    )
+
+    fig.update_traces(
+        y = average_yield_per_week,
+        selector = {'name': 'Average Yield'}
+    )
+
+    fig.update_layout(
+        shapes=[
+            dict(
+                type="line",
+                xref="paper",
+                yref="y",
+                x0=0,
+                x1=1,
+                y0=total_predicted_yield,
+                y1=total_predicted_yield,
+                line=dict(
+                    color="black",
+                    width=2,
+                    dash="dash"
+                ),
+            )
+        ],
+        annotations=[
+            dict(
+                x=1,
+                y=total_predicted_yield,
+                xref="paper",
+                yref="y",
+                text=f"Total Predicted Yield: {total_predicted_yield/1000:.1f}k kg/ha",
+                showarrow=False,
+                yanchor="bottom",
+                xanchor="right",
+                font=dict(color="black"),
+            )
+        ]
+    )
+
+def ranch_yield_projected(fig,df,preds,actuals,week):
+
+    kg_so_far = actuals[:,:week].sum(axis=1)
+    rkg = preds[:,week]
+    total_kg = kg_so_far + rkg
+    ha = df['ha'].values
+    df['total_kg'] = total_kg
+
+    average_yield_per_ranch = df.groupby('ranch')['total_kg'].sum() / df.groupby('ranch')['ha'].sum()
+
+    yield_so_far = kg_so_far / ha
+    predicted_yield = total_kg / ha
+
+    total_predicted_yield = total_kg.sum() / ha.sum()
+
+    kg_pairs_nan = np.array([[yield_so_far[i], predicted_yield[i], np.nan] for i in range(len(kg_so_far))]).flatten()
+
+    fig.update_traces(
+        y = yield_so_far,
+        marker = {'size': (kg_so_far/total_kg.max()*20 + 5)},
+        selector = {'name': 'Yield So Far'}
+    )
+
+    fig.update_traces(
+        y = predicted_yield,
+        marker = {'size': (total_kg/total_kg.max()*20 + 5)},
+        selector = {'name': 'Projected Yield'}
+    )
+
+    fig.update_traces(
+        y = kg_pairs_nan,
+        selector = {'name': 'Connectors'}
+        
+    )
+    fig.update_traces(
+        y = average_yield_per_ranch,
+        selector = {'name': 'Projected Average Yield'}
+    )
+
+    fig.update_layout(
+        shapes=[
+            dict(
+                type="line",
+                xref="paper",
+                yref="y",
+                x0=0,
+                x1=1,
+                y0=total_predicted_yield,
+                y1=total_predicted_yield,
+                line=dict(
+                    color="black",
+                    width=2,
+                    dash="dash"
+                ),
+            )
+        ],
+        annotations=[
+            dict(
+                x=1,
+                y=total_predicted_yield,
+                xref="paper",
+                yref="y",
+                text=f"Total Predicted Yield: {total_predicted_yield/1000:.1f}k kg/ha",
+                showarrow=False,
+                yanchor="bottom",
+                xanchor="right",
+                font=dict(color="black")
+            )
+        ]
+    )
+    return fig
+
+
+def yield_breakdown(fig,df,df_by_year,preds,actuals,df1,historical_yield,week):
+    max_kg = df['total_kg'].max()
+
+    kg_so_far = actuals[:,:week].sum(axis=1)
+    rkg = preds[:,week]
+    total_kg = kg_so_far + rkg
+    ha = df1['ha'].values
+
+    yield_so_far = kg_so_far / ha
+    predicted_yield = total_kg / ha
+
+    total_predicted_yield = total_kg.sum() / ha.sum()
+
+    kg_pairs_nan = np.array([[yield_so_far[i], predicted_yield[i], np.nan] for i in range(len(kg_so_far))]).flatten()
+    
+    fig.update_traces(
+        y = yield_so_far,
+        marker = {'size': (kg_so_far/max_kg*20 + 5)},
+        selector = {'name': 'Yield So Far'}
+    )
+
+    fig.update_traces(
+        y = predicted_yield,
+        marker = {'size': (total_kg/max_kg*20 + 5)},
+        selector = {'name': 'Projected Yield'}
+    )
+
+    fig.update_traces(
+        y = kg_pairs_nan,
+        selector = {'name': 'Connectors'}
+        
+    )
+
+    fig.update_traces(
+        y = [df_by_year['yield'].values[-1],total_predicted_yield],
+        selector = {'name': 'Projected Average Yield'}
+    )
+
+    fig.update_layout(
+        shapes=[
+            dict(
+                type="line",
+                xref="paper",
+                yref="y",
+                x0=0,
+                x1=1,
+                y0=historical_yield,
+                y1=total_predicted_yield,
+                line=dict(
+                    color="orange",
+                    width=2,
+                    dash="dash"
+                ),
+            )
+        ],
+        annotations=[
+            dict(
+                x=1,
+                y=total_predicted_yield,
+                xref="paper",
+                yref="y",
+                text=f"Historical Yield: {historical_yield/1000:.1f}k kg/ha",
+                showarrow=False,
+                yanchor="bottom",
+                xanchor="right",
+                font=dict(color="black")
+            )
+        ]
+    )
+    return fig

@@ -169,74 +169,74 @@ def sliding_transplant_projected(data):
     title='Projected KG',
     yaxis_title='KG',
     xaxis_title='Week of Season'
-)
+    )
 
     return fig
 
-def sliding_transplant_ranch():
-    """
-    Graph the kilos received and Ha planted for the whole season with a ranch breakdown. 
-    When a specific transplant week is selected, the graph will show the kilos received curve/yield for that week with a ranch breakdown.
-    """
-    fig = go.Figure()
+# def sliding_transplant_ranch():
+#     """
+#     Graph the kilos received and Ha planted for the whole season with a ranch breakdown. 
+#     When a specific transplant week is selected, the graph will show the kilos received curve/yield for that week with a ranch breakdown.
+#     """
+#     fig = go.Figure()
 
-    #----------initialize traces----------
-    #add total curve trace (named: total_kg)
+#     #----------initialize traces----------
+#     #add total curve trace (named: total_kg)
 
-    #add highlighted week curve traces for each ranch(named: [ranch]_transplant_week_kg, legendgroup = [ranch])
+#     #add highlighted week curve traces for each ranch(named: [ranch]_transplant_week_kg, legendgroup = [ranch])
 
-    #add ha bar graph traces for each ranch(named: [ranch]_ha, legendgroup = [ranch])
+#     #add ha bar graph traces for each ranch(named: [ranch]_ha, legendgroup = [ranch])
 
-    #add highlighted week bar trace (named: highlighted_week
+#     #add highlighted week bar trace (named: highlighted_week
 
-    #----------initialize shapes----------
-    #add shape for first harvest
-    #add shape for harvest duration
-    #add shape for end of harvest
-    #add shape for current week
+#     #----------initialize shapes----------
+#     #add shape for first harvest
+#     #add shape for harvest duration
+#     #add shape for end of harvest
+#     #add shape for current week
 
-    #----------initialize annotations----------
-    #add annotation for total yield
+#     #----------initialize annotations----------
+#     #add annotation for total yield
 
-    #add annotation for highlighted week yield
+#     #add annotation for highlighted week yield
 
-    #----------update layout----------
+#     #----------update layout----------
 
-    return fig
+#     return fig
 
-def sliding_transplant_ranch_projected():
-    """
-    Graph the kilos received and Ha planted for the whole season with a ranch breakdown. 
-    When a specific transplant week is selected, the graph will show the kilos received curve/yield for that week with a ranch breakdown.
-    """
-    fig = go.Figure()
+# def sliding_transplant_ranch_projected():
+#     """
+#     Graph the kilos received and Ha planted for the whole season with a ranch breakdown. 
+#     When a specific transplant week is selected, the graph will show the kilos received curve/yield for that week with a ranch breakdown.
+#     """
+#     fig = go.Figure()
 
-    #----------initialize traces----------
-    #add total curve trace (named: total_kg)
+#     #----------initialize traces----------
+#     #add total curve trace (named: total_kg)
 
-    #add highlighted week curve traces for each ranch(named: [ranch]_transplant_week_kg)
+#     #add highlighted week curve traces for each ranch(named: [ranch]_transplant_week_kg)
 
-    #add ha bar graph traces for each ranch(named: [ranch]_ha)
+#     #add ha bar graph traces for each ranch(named: [ranch]_ha)
 
-    #add highlighted week bar trace (named: highlighted_week)
+#     #add highlighted week bar trace (named: highlighted_week)
 
-    #----------initialize shapes----------
-    #add shape for first harvest
+#     #----------initialize shapes----------
+#     #add shape for first harvest
 
-    #add shape for harvest duration
+#     #add shape for harvest duration
 
-    #add shape for end of harvest
+#     #add shape for end of harvest
 
-    #add shape for current week
+#     #add shape for current week
 
-    #----------initialize annotations----------
-    #add annotation for total yield
+#     #----------initialize annotations----------
+#     #add annotation for total yield
 
-    #add annotation for highlighted week yield
+#     #add annotation for highlighted week yield
 
-    #----------update layout----------
+#     #----------update layout----------
 
-    return fig
+#     return fig
 
 def kg_ha(data):
     """
@@ -527,7 +527,7 @@ def transplant_week_yield_projected(df, preds, actuals):
             name='Average Yield',
             line=dict(width=2,color='red',dash='dash')
         )
-)
+    )
 
 
     fig.add_hline(y=total_predicted_yield, line_dash="dash", line_color="black",annotation_text=f"Total Predicted Yield: {total_predicted_yield/1000:.1f}k kg/ha", annotation_position="bottom right")
@@ -601,7 +601,7 @@ def ranch_yield(df,mappings):
         y=total_yield,
         line_dash="dash", 
         line_color="black",
-        annotation_text=f"!!!Total Yield: {total_yield/1000:.1f}k kg/ha",
+        annotation_text=f"Total Yield: {total_yield/1000:.1f}k kg/ha",
         annotation_position="bottom right"
     )
 
@@ -610,8 +610,8 @@ def ranch_yield(df,mappings):
 
     #---------- update layout----------
     fig.update_layout(
-        title='Yield vs Transplant Week',
-        xaxis_title='Transplant Week',
+        title='Yield vs Ranch',
+        xaxis_title='Ranch',
         yaxis_title='Yield (kg/ha)',
         xaxis = {
             "ticktext": list(mappings['ranch'].keys()),
@@ -635,7 +635,7 @@ def ranch_yield_projected(df, preds, actuals, mappings):
     yield_so_far = kg_so_far / ha
     predicted_yield = total_kg / ha
 
-    average_yield_per_week = df.groupby('ranch')['total_kg'].sum() / df.groupby('ranch')['ha'].sum()
+    average_yield_per_ranch = df.groupby('ranch')['total_kg'].sum() / df.groupby('ranch')['ha'].sum()
     total_predicted_yield = total_kg.sum() / ha.sum()
 
     kg_pairs_nan = np.array([[yield_so_far[i], predicted_yield[i], np.nan] for i in range(len(kg_so_far))]).flatten()
@@ -647,7 +647,7 @@ def ranch_yield_projected(df, preds, actuals, mappings):
             x=df['x1'],
             y=yield_so_far,
             mode='markers',
-            name='Total So Far',
+            name='Yield So Far',
             marker={
                 'size': (kg_so_far/total_kg.max()*20 + 5),
                 'color': 'black',
@@ -661,7 +661,7 @@ def ranch_yield_projected(df, preds, actuals, mappings):
             x=df['x2'],
             y=predicted_yield,
             mode='markers',
-            name='Projected Total',
+            name='Projected Yield',
             marker={
                 'size': (total_kg/total_kg.max()*20 + 5),
                 'color': 'green',
@@ -684,8 +684,8 @@ def ranch_yield_projected(df, preds, actuals, mappings):
 
     fig.add_trace(
         go.Bar(
-            x=average_yield_per_week.index.map(mappings['ranch']),
-            y=average_yield_per_week,
+            x=average_yield_per_ranch.index.map(mappings['ranch']),
+            y=average_yield_per_ranch,
             name='Projected Average Yield',
             marker_color='pink',
             opacity=0.5
@@ -701,8 +701,8 @@ def ranch_yield_projected(df, preds, actuals, mappings):
 
     #---------- update layout----------
     fig.update_layout(
-        title='Yield vs Transplant Week',
-        xaxis_title='Transplant Week',
+        title='Yield vs Ranch',
+        xaxis_title='Ranch',
         yaxis_title='Yield (kg/ha)',
         xaxis = {
             "ticktext": list(mappings['ranch'].keys()),
@@ -756,7 +756,7 @@ def yield_breakdown(df, df_by_year, preds, actuals,df1,historical_yield):
             x=df1['x1'],
             y=yield_so_far,
             mode='markers',
-            name='Total So Far',
+            name='Yield So Far',
             marker={
                 'size': (kg_so_far/max_kg*20 + 5),
                 'color': 'black',
@@ -770,7 +770,7 @@ def yield_breakdown(df, df_by_year, preds, actuals,df1,historical_yield):
             x=df1['x2'],
             y=predicted_yield,
             mode='markers',
-            name='Projected Total',
+            name='Projected Yield',
             marker={
                 'size': (total_kg/max_kg*20 + 5),
                 'color': 'green',
@@ -782,7 +782,7 @@ def yield_breakdown(df, df_by_year, preds, actuals,df1,historical_yield):
     fig.add_trace(
         go.Scatter(
             x=x_pairs_nan,
-            y=kg_pairs_nan.flatten(),
+            y=kg_pairs_nan,
             mode='lines',
             name='Connectors',
             line=dict(width=0.2,color='green',dash='dash')
@@ -812,9 +812,11 @@ def yield_breakdown(df, df_by_year, preds, actuals,df1,historical_yield):
     #maybe shape of average yield for each one / annotation? but might be to cluttered
     fig.add_hline(y=historical_yield, line_dash="dash", line_color="orange",annotation_text=f"Historical Yield: {historical_yield/1000:.1f}k kg/ha", annotation_position="bottom right")
     #---------- update layout----------
+    
     fig.update_layout(
         title='Yield vs Year',
         xaxis_title='Year',
-        yaxis_title='Yield (kg/ha)',
-)
+        yaxis_title='Yield (kg/ha)'
+    )
+
     return fig

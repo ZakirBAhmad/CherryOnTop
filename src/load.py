@@ -20,7 +20,7 @@ def load_mappings():
 
 def load_historical_data():
     meta = pd.read_csv(paths.HISTORICAL / 'meta.csv')
-    y = pd.read_csv(paths.HISTORICAL / 'y.csv',header=None)
+    y = np.loadtxt(paths.HISTORICAL / 'y.csv', delimiter=',').astype(np.int32)
     t_weeks = meta.transplant_week.values
     idx_dict = create_idx_dict(meta)
     total_kg = y.sum(axis=1)
