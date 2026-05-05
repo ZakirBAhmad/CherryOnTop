@@ -4,6 +4,8 @@ import src.graphs_new as graphs
 import src.graph_update as update
 import src.table as table
 import src.graphs_calc as calc
+import src.display_table as display_table
+import src.update_table as update_table
 st.set_page_config(layout="wide")
 
 tomato_class = 'Mix'    
@@ -65,7 +67,9 @@ update.kg_ha_projected(khp_fig,khp_data,week)
 update.transplant_week_yield_projected(twyp_fig,twyp_df,twyp_preds,twyp_actuals,week)
 update.ranch_yield_projected(ryp_fig,ryp_df,ryp_preds,ryp_actuals,week)
 update.yield_breakdown(yb_fig,df,df_by_year,preds,actuals,df1,historical_yield,week)
-
+df = display_table.prediction_history(final_preds,szn_act,idx_dict,tomato_class)
+styled_df = update_table.pred_history(df,week)
+st.dataframe(styled_df) 
 
 st.plotly_chart(stp_fig,key='stp_fig')
 
